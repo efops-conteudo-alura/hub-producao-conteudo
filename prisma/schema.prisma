@@ -1,0 +1,480 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String    @id @default(cuid())
+  name      String
+  email     String    @unique
+  password  String?
+  image     String?   // base64 data URL ou URL externa
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  appRoles  AppRole[]
+  submissionsAsInstructor  Submission[] @relation("SubmissionInstructor")
+  submissionsAsCoordinator Submission[] @relation("SubmissionCoordinator")
+}
+
+model AppRole {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  app       String   // ex: "hub-efops", "select-activity"
+  role      String   // ex: "ADMIN", "USER"
+  createdAt DateTime @default(now())
+
+  @@unique([userId, app])
+}
+
+model Subscription {
+  id           String       @id @default(cuid())
+  name         String
+  planName     String?
+  description  String?
+  url          String?
+  loginUser    String?
+  loginPass    String?
+  loginType    LoginType    @default(PASSWORD)
+  cost         Float?
+  currency     String       @default("BRL")
+  billingCycle BillingCycle @default(MONTHLY)
+  costCenter   String?
+  team         String?
+  responsible  String?
+  isActive     Boolean      @default(true)
+  renewalDate  DateTime?
+  notes        String?
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+}
+
+enum BillingCycle {
+  MONTHLY
+  ANNUALLY
+  ONE_TIME
+  USAGE
+}
+
+enum LoginType {
+  PASSWORD
+  CODE
+}
+
+model Prompt {
+  id        String   @id @default(cuid())
+  titulo    String
+  descricao String?
+  conteudo  String
+  categoria String?
+  autorId   String
+  autorNome String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Project {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  url         String?
+  responsible String?
+  repoUrl     String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Automation {
+  id                String           @id @default(cuid())
+  name              String
+  type              AutomationType   @default(AUTOMATION)
+  shortDesc         String?
+  fullDesc          String?
+  thumbnailUrl      String?
+  link              String?
+  status            AutomationStatus @default(ACTIVE)
+  creator           String?
+  tools             String[]
+  roiHoursSaved     Float?
+  roiMonthlySavings Float?
+  roiDescription    String?
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+}
+
+enum AutomationType {
+  AUTOMATION
+  AGENT
+}
+
+enum AutomationStatus {
+  ACTIVE
+  INACTIVE
+  TESTING
+}
+
+model Expense {
+  id          String          @id @default(cuid())
+  month       String          // formato "2026-02"
+  date        String?         // formato "2026-02-14" (opcional, quando há data exata)
+  value       Float           // em BRL
+  category    ExpenseCategory
+  description String?         // nome do instrutor/prestador
+  source      ExpenseSource   @default(MANUAL)
+  externalId  String?         @unique // task ID do ClickUp (deduplicação)
+  notes       String?
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+}
+
+enum ExpenseCategory {
+  INSTRUTOR
+  EDITOR_FREELANCER
+  EDITOR_EXTERNO
+  SUPORTE_EDUCACIONAL
+  OUTROS
+}
+
+enum ExpenseSource {
+  CLICKUP
+  UPLOAD
+  MANUAL
+}
+
+model Process {
+  id          String        @id @default(cuid())
+  title       String
+  description String?
+  tags        String[]
+  status      ProcessStatus @default(DRAFT)
+  creatorId   String
+  creatorName String
+  flowData    String?       // JSON.stringify({ nodes, edges })
+  richText    String?       // JSON.stringify(TipTap document)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+}
+
+enum ProcessStatus {
+  DRAFT
+  PUBLISHED
+}
+
+model Documentation {
+  id          String              @id @default(cuid())
+  title       String
+  description String?
+  content     String?             // JSON (TipTap) ou HTML string (import .docx)
+  tags        String[]
+  status      DocumentationStatus @default(DRAFT)
+  creatorId   String
+  creatorName String
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
+}
+
+enum DocumentationStatus {
+  DRAFT
+  PUBLISHED
+}
+
+enum ReportType {
+  FORM
+  AI_ANALYSIS
+}
+
+model Report {
+  id             String           @id @default(cuid())
+  title          String
+  objective      String?
+  fields         Json             // ReportField[] (usado apenas no tipo FORM)
+  token          String           @unique @default(cuid())
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  responses      ReportResponse[]
+  // campos de análise de IA
+  type           ReportType       @default(FORM)
+  aiInstructions String?          // system prompt para o Claude
+  aiNeedsFile    Boolean          @default(false)
+  aiNeedsDate    Boolean          @default(false)
+  aiOutputFormat   String           @default("text") // "text" | "pdf"
+  aiNeedsClickup   Boolean          @default(false)
+  aiClickupListIds String?          // IDs de listas separados por vírgula
+  aiHasPresentation Boolean         @default(false) // injeta marcador <!-- GAMMA_SLIDES --> no prompt
+  aiResultados     AiAnaliseResult[]
+  isAdminOnly      Boolean          @default(false) // se true, só admins veem este relatório
+}
+
+model ReportResponse {
+  id        String   @id @default(cuid())
+  reportId  String
+  report    Report   @relation(fields: [reportId], references: [id], onDelete: Cascade)
+  data      Json     // Record<fieldId, string>
+  createdAt DateTime @default(now())
+}
+
+model AiAnaliseResult {
+  id                    String   @id @default(cuid())
+  reportId              String
+  report                Report   @relation(fields: [reportId], references: [id], onDelete: Cascade)
+  params                Json     // { periodoInicio?, periodoFim?, arquivoNome? }
+  resultado             String   // Markdown gerado pelo Claude (seções A–E)
+  resultadoApresentacao String?  // Seção F separada (roteiro para o Gamma)
+  gammaUrl              String?  // URL da apresentação gerada no Gamma
+  totalRows             Int?
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+}
+
+// KPIs de Conteúdo
+
+model KpiAno {
+  id        String   @id @default(cuid())
+  year      Int      @unique
+  createdAt DateTime @default(now())
+}
+
+model KpiPesos {
+  id         String    @id @default(cuid())
+  curso      Float     @default(25)
+  artigo     Float     @default(5)
+  carreira   Float     @default(2)
+  nivel      Float     @default(5)
+  trilha     Float     @default(2)
+  lastSyncAt DateTime?
+}
+
+model KpiProducao {
+  id        String   @id @default(cuid())
+  month     String   // YYYY-MM
+  cursos    Int      @default(0)
+  artigos   Int      @default(0)
+  carreiras Int      @default(0)
+  niveis    Int      @default(0)
+  trilhas   Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([month])
+}
+
+model KpiCarreiraLevel {
+  id               String    @id @default(cuid())
+  carreiraSlug     String    // ex: "engenharia-de-dados"
+  carreiraName     String    // ex: "Engenharia de Dados"
+  levelName        String    // ex: "Base — Python, SQL e Fundamentos de Nuvem"
+  order            Int       @default(0) // posição no site (DOM order)
+  isPublished      Boolean   @default(false)
+  firstPublishedAt DateTime? // quando nosso sistema detectou publicado pela 1ª vez
+  createdAt        DateTime  @default(now()) // quando o nível foi visto pela 1ª vez (independente de estar publicado)
+  updatedAt        DateTime  @updatedAt
+
+  @@unique([carreiraSlug, levelName])
+}
+
+model SystemConfig {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  value     String   // criptografado com AES-256-GCM
+  updatedAt DateTime @updatedAt
+  updatedBy String?  // email do admin que atualizou
+}
+
+model AluraCourse {
+  id                   String    @id @default(cuid())
+  slug                 String    @unique
+  nome                 String
+  metadescription      String?
+  categoria            String?
+  subcategoria         String?
+  instrutores          String[]
+  cargaHoraria         Int?
+  dataPublicacao       DateTime?
+  // Campos do admin
+  aluraId              Int?      @unique
+  instrutor            String?
+  nivel                String?
+  statusPub            String?
+  statusCriacao        String?
+  tipoContrato         String?
+  tipo                 String?
+  catalogos            String[]
+  subcategorias        String?
+  isExclusive          Boolean   @default(false)
+  // Campos enriquecidos (módulo futuro)
+  ementa               String?
+  finishingAction      String?
+  targetPublic         String?
+  highlightedInformation String?
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+}
+
+model AluraArtigo {
+  id              String    @id @default(cuid())
+  slug            String    @unique
+  nome            String
+  descricao       String?
+  autor           String?
+  categoria       String?
+  dataPublicacao  DateTime?
+  dataModificacao DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+}
+
+model AluraTrilha {
+  id           String   @id @default(cuid())
+  slug         String   @unique
+  nome         String
+  categoria    String?
+  numCursos    Int?
+  cargaHoraria Int?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model AllowedEmail {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  createdAt DateTime @default(now())
+}
+
+model Submission {
+  id            String    @id @default(cuid())
+  instructorId  String
+  instructor    User      @relation("SubmissionInstructor", fields: [instructorId], references: [id])
+  coordinatorId String
+  coordinator   User      @relation("SubmissionCoordinator", fields: [coordinatorId], references: [id])
+  courseId      String
+  originalData  Json      // JSON completo original (todos os exercícios, antes das edições)
+  submittedData Json      // JSON com exercícios selecionados + edições + comentários do instrutor
+  status        String    @default("pending") // "pending" | "exported"
+  exportedAt    DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+model EmentaAnalise {
+  id             String   @id @default(cuid())
+  titulo         String
+  ementaOriginal String
+  avaliacao      String
+  sugestaoEmenta String
+  autorId        String
+  autorNome      String
+  createdAt      DateTime @default(now())
+}
+
+model PesquisaMercado {
+  id            String   @id @default(cuid())
+  assunto       String
+  tipoConteudo  String
+  tipoPesquisa  String
+  nivel         String
+  eixos         String[]
+  focoGeo       String
+  plataformas   String?
+  resultado     String
+  autorNome     String
+  autorEmail    String
+  createdAt     DateTime @default(now())
+}
+
+model SubscriptionAudit {
+  id               String   @id @default(cuid())
+  subscriptionId   String
+  subscriptionName String
+  userId           String
+  userName         String
+  action           String   // "CREATE" | "UPDATE" | "DELETE"
+  changes          Json?    // { field: { from, to } } — null para CREATE/DELETE
+  createdAt        DateTime @default(now())
+}
+
+model KpiEdicao {
+  id                String   @id @default(cuid())
+  month             String   // YYYY-MM
+  correcoes         Int      @default(0)
+  entregasConteudo  Int      @default(0)
+  entregasStart     Int      @default(0)
+  entregasLatam     Int      @default(0)
+  entregasMarketing Int      @default(0)
+  entregasOutras    Int      @default(0)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@unique([month])
+}
+
+model ImobilizacaoPeriodo {
+  id         String              @id @default(cuid())
+  ano        Int
+  mes        Int                 // 1–12
+  dataInicio DateTime?
+  dataFim    DateTime?
+  feriados   Int                 @default(0)
+  diasUteis  Int                 @default(0)
+  entries    ImobilizacaoEntry[]
+  createdAt  DateTime            @default(now())
+  updatedAt  DateTime            @updatedAt
+
+  @@unique([ano, mes])
+}
+
+model ImobilizacaoEntry {
+  id                   String               @id @default(cuid())
+  periodoId            String
+  periodo              ImobilizacaoPeriodo  @relation(fields: [periodoId], references: [id], onDelete: Cascade)
+  timeId               String?              // FK para ImobilizacaoTime (sync automático)
+  time                 ImobilizacaoTime?    @relation(fields: [timeId], references: [id], onDelete: SetNull)
+  colaboradorNome      String
+  colaboradorMatricula String?
+  cargaHorariaTotal    Int?
+  cargaHorariaDiaria   Int?
+  produtoTipo          String?              // "curso", "trilha", etc.
+  produtoId            String?              // ID externo do produto/curso
+  produtoNome          String
+  horas                Int                  @default(0)
+  createdAt            DateTime             @default(now())
+  updatedAt            DateTime             @updatedAt
+
+  @@unique([periodoId, colaboradorNome, produtoNome])
+}
+
+model ImobilizacaoTime {
+  id                       String                    @id @default(cuid())
+  nome                     String
+  clickupListId            String
+  clickupListIdsAdicionais String?                   // IDs adicionais separados por vírgula
+  ordem                    Int                       @default(0)
+  colaboradores ImobilizacaoColaborador[]
+  entries       ImobilizacaoEntry[]
+  createdAt     DateTime                  @default(now())
+  updatedAt     DateTime                  @updatedAt
+}
+
+model ImobilizacaoColaborador {
+  id                 String          @id @default(cuid())
+  timeId             String
+  time               ImobilizacaoTime @relation(fields: [timeId], references: [id], onDelete: Cascade)
+  nome               String
+  clickupUsername    String?          // username no ClickUp para matching (se diferente do nome)
+  matricula          String?
+  cargaHorariaDiaria Float            @default(8)
+  ordem              Int              @default(0)
+  tipo               ColaboradorTipo  @default(NORMAL)
+  regraJson          String?          // JSON com regras especiais
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
+}
+
+enum ColaboradorTipo {
+  NORMAL
+  LIDER
+  ESPECIAL
+}
