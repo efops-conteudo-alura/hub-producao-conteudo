@@ -15,12 +15,14 @@ export function Sidebar() {
   const pathname = usePathname()
 
   return (
-    <aside className="flex flex-col w-[92px] shrink-0 border-r border-border bg-sidebar h-screen sticky top-0">
-      {/* Cabeçalho com pontilhado */}
-      <div className="relative flex items-center justify-center h-16 border-b border-border overflow-hidden shrink-0">
-        <div className="dot-pattern absolute inset-0" />
-        <span className="relative font-heading text-sm font-medium text-foreground/90 tracking-wide leading-none text-center">
-          Hub
+    <aside className="flex flex-col w-[116px] shrink-0 border-r border-sidebar-border bg-sidebar h-screen sticky top-0">
+      {/* Cabeçalho */}
+      <div className="flex flex-col items-center justify-center py-5 px-3 border-b border-sidebar-border shrink-0 gap-0.5">
+        <span className="font-heading text-[13px] font-medium text-foreground/90 text-center leading-snug">
+          Hub de Produção de Conteúdo
+        </span>
+        <span className="text-[10px] text-muted-foreground tracking-widest uppercase">
+          Alura
         </span>
       </div>
 
@@ -34,8 +36,8 @@ export function Sidebar() {
               href={href}
               className={`flex flex-col items-center justify-center gap-2 w-full py-4 px-2 rounded-xl transition-colors ${
                 isActive
-                  ? "bg-muted text-foreground"
-                  : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                  ? "bg-muted/80 text-foreground"
+                  : "text-muted-foreground hover:text-foreground hover:bg-muted/40"
               }`}
             >
               <Icon size={22} strokeWidth={isActive ? 2 : 1.5} />
@@ -48,10 +50,10 @@ export function Sidebar() {
       </nav>
 
       {/* Logout */}
-      <div className="shrink-0 border-t border-border px-2 py-3">
+      <div className="shrink-0 border-t border-sidebar-border px-2 py-3">
         <button
           onClick={() => signOut({ callbackUrl: "/login" })}
-          className="flex flex-col items-center justify-center gap-2 w-full py-4 px-2 rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors"
+          className="flex flex-col items-center justify-center gap-2 w-full py-4 px-2 rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted/40 transition-colors"
         >
           <LogOut size={20} strokeWidth={1.5} />
           <span className="text-[11px] font-semibold leading-none">Sair</span>
