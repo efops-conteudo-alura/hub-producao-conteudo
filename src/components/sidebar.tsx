@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { signOut } from "next-auth/react"
+import { signOut, useSession } from "next-auth/react"
 import { Home, BookOpen, FileCheck, LogOut, GraduationCap, BookMarked, BarChart2 } from "lucide-react"
 
 const mainNavItems = [
@@ -38,6 +38,9 @@ function NavLink({ href, label, icon: Icon }: { href: string; label: string; ico
 }
 
 export function Sidebar() {
+  const { data: session } = useSession()
+  const userName = session?.user?.name || session?.user?.email || ""
+
   return (
     <aside className="flex flex-col w-[116px] shrink-0 border-r border-sidebar-border bg-sidebar h-screen sticky top-0">
       {/* Cabeçalho */}
@@ -64,8 +67,15 @@ export function Sidebar() {
         ))}
       </div>
 
-      {/* Logout */}
-      <div className="shrink-0 border-t border-sidebar-border px-2 py-3">
+      {/* Usuário + Logout */}
+      <div className="shrink-0 border-t border-sidebar-border px-2 py-3 flex flex-col gap-1">
+        {userName && (
+          <div className="px-2 py-2 text-center">
+            <p className="text-[10px] text-muted-foreground leading-tight truncate" title={userName}>
+              {userName}
+            </p>
+          </div>
+        )}
         <button
           onClick={() => signOut({ callbackUrl: "/login" })}
           className="flex flex-col items-center justify-center gap-2 w-full py-4 px-2 rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted/40 transition-colors"
