@@ -7,11 +7,11 @@ import { Home, BookOpen, FileCheck, LogOut, GraduationCap, BookMarked, BarChart2
 
 const mainNavItems = [
   { href: "/home", label: "Início", icon: Home },
-  { href: "/validacao-ementa", label: "Validação de Ementa", icon: FileCheck },
   { href: "/pesquisa-mercado", label: "Pesquisa de Mercado", icon: BarChart2 },
+  { href: "/validacao-ementa", label: "Validação de Ementa", icon: FileCheck },
   { href: "/revisao-didatica", label: "Revisão Didática", icon: GraduationCap },
-  { href: "/plano-de-estudos", label: "Plano de Estudos", icon: BookMarked },
   { href: "/seletor-de-atividades", label: "Seletor de Ativ.", icon: ListChecks },
+  { href: "/plano-de-estudos", label: "Plano de Estudos", icon: BookMarked },
 ]
 
 const bottomNavItems = [
