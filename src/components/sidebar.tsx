@@ -38,9 +38,18 @@ function NavLink({ href, label, icon: Icon }: { href: string; label: string; ico
   )
 }
 
+const seletorItem = { href: "/seletor-de-atividades", label: "Seletor de Ativ.", icon: ListChecks }
+
 export function Sidebar() {
   const { data: session } = useSession()
   const userName = session?.user?.name || session?.user?.email || ""
+  const isInstructor =
+    session?.user?.selectorRole === "INSTRUCTOR" && !session?.user?.role
+
+  const visibleMainItems = isInstructor
+    ? [seletorItem]
+    : mainNavItems
+  const visibleBottomItems = isInstructor ? [] : bottomNavItems
 
   return (
     <aside className="flex flex-col w-[116px] shrink-0 border-r border-sidebar-border bg-sidebar h-screen sticky top-0">
@@ -56,17 +65,19 @@ export function Sidebar() {
 
       {/* Navegação principal (produção) */}
       <nav className="flex-1 flex flex-col items-center py-4 gap-2 px-2">
-        {mainNavItems.map((item) => (
+        {visibleMainItems.map((item) => (
           <NavLink key={item.href} {...item} />
         ))}
       </nav>
 
       {/* Navegação secundária (consulta) */}
-      <div className="shrink-0 border-t border-sidebar-border px-2 py-3 flex flex-col gap-2">
-        {bottomNavItems.map((item) => (
-          <NavLink key={item.href} {...item} />
-        ))}
-      </div>
+      {visibleBottomItems.length > 0 && (
+        <div className="shrink-0 border-t border-sidebar-border px-2 py-3 flex flex-col gap-2">
+          {visibleBottomItems.map((item) => (
+            <NavLink key={item.href} {...item} />
+          ))}
+        </div>
+      )}
 
       {/* Usuário + Logout */}
       <div className="shrink-0 border-t border-sidebar-border px-2 py-3 flex flex-col gap-1">

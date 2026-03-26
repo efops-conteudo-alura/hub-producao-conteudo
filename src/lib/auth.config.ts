@@ -14,7 +14,11 @@ export const authConfig: NextAuthConfig = {
       // Instrutor (sem acesso ao hub-producao) só pode acessar o seletor
       const isInstructor =
         session.user?.selectorRole === "INSTRUCTOR" && !session.user?.role;
-      if (isInstructor && !pathname.startsWith("/seletor-de-atividades")) {
+      if (
+        isInstructor &&
+        !pathname.startsWith("/seletor-de-atividades") &&
+        !pathname.startsWith("/api/")
+      ) {
         return Response.redirect(
           new URL("/seletor-de-atividades/tarefas", request.url)
         );
