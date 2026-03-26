@@ -1,15 +1,6 @@
-import { redirect } from "next/navigation"
-import { auth } from "@/lib/auth"
 import { Sidebar } from "@/components/sidebar"
 
-export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
-  const session = await auth()
-
-  // Instrutores só têm acesso ao módulo seletor de atividades
-  if (session?.user?.selectorRole === "INSTRUCTOR" && !session?.user?.role) {
-    redirect("/seletor-de-atividades/tarefas")
-  }
-
+export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex h-screen overflow-hidden">
       <Sidebar />

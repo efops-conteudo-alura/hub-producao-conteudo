@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { signOut, useSession } from "next-auth/react"
-import { Home, BookOpen, FileCheck, LogOut, GraduationCap, BookMarked, BarChart2 } from "lucide-react"
+import { Home, BookOpen, FileCheck, LogOut, GraduationCap, BookMarked, BarChart2, ListChecks } from "lucide-react"
 
 const mainNavItems = [
   { href: "/home", label: "Início", icon: Home },
@@ -11,6 +11,7 @@ const mainNavItems = [
   { href: "/pesquisa-mercado", label: "Pesquisa de Mercado", icon: BarChart2 },
   { href: "/revisao-didatica", label: "Revisão Didática", icon: GraduationCap },
   { href: "/plano-de-estudos", label: "Plano de Estudos", icon: BookMarked },
+  { href: "/seletor-de-atividades", label: "Seletor de Ativ.", icon: ListChecks },
 ]
 
 const bottomNavItems = [
