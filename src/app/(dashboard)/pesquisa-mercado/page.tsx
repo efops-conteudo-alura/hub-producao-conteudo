@@ -1,25 +1,21 @@
-import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/db"
 import { PesquisaMercadoWrapper } from "./_components/pesquisa-mercado-wrapper"
 
 export default async function PesquisaMercadoPage() {
-  const session = await auth()
-
-  const pesquisas = session
-    ? (
-        await prisma.pesquisaMercado.findMany({
-          orderBy: { createdAt: "desc" },
-          select: {
-            id: true,
-            assunto: true,
-            tipoConteudo: true,
-            tipoPesquisa: true,
-            autorNome: true,
-            createdAt: true,
-          },
-        })
-      ).map((p) => ({ ...p, createdAt: p.createdAt.toISOString() }))
-    : []
+  const pesquisas = await prisma.pesquisaMercado
+    .findMany({
+      orderBy: { createdAt: "desc" },
+      select: {
+        id: true,
+        assunto: true,
+        tipoConteudo: true,
+        tipoPesquisa: true,
+        autorNome: true,
+        createdAt: true,
+      },
+    })
+    .then((rows) => rows.map((p) => ({ ...p, createdAt: p.createdAt.toISOString() })))
+    .catch(() => [])
 
   return (
     <div className="px-10 pt-10 pb-10">

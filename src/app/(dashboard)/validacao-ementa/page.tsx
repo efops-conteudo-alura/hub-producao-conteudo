@@ -1,18 +1,16 @@
-import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/db"
 import { ValidadorForm } from "./_components/validador-form"
 import { HistoricoList } from "./_components/historico-list"
 
 export default async function ValidacaoEmentaPage() {
-  const session = await auth()
-
-  const analyses = session
-    ? (await prisma.ementaAnalise.findMany({
-        orderBy: { createdAt: "desc" },
-        take: 30,
-        select: { id: true, titulo: true, autorNome: true, createdAt: true },
-      })).map((a) => ({ ...a, createdAt: a.createdAt.toISOString() }))
-    : []
+  const analyses = await prisma.ementaAnalise
+    .findMany({
+      orderBy: { createdAt: "desc" },
+      take: 30,
+      select: { id: true, titulo: true, autorNome: true, createdAt: true },
+    })
+    .then((rows) => rows.map((a) => ({ ...a, createdAt: a.createdAt.toISOString() })))
+    .catch(() => [])
 
   return (
     <div className="px-10 pt-10 pb-10">
