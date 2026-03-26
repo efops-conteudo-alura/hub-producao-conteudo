@@ -56,7 +56,7 @@ export default function PrimeiroAcessoPage() {
           Primeiro acesso ao Seletor de Atividades
         </p>
         <p className="text-muted-foreground/60 text-xs mt-1">
-          Se você já tem conta no Hub de Produção, use o mesmo email e senha.
+          Se você já tem conta no Hub Efops ou no Seletor de Atividades, use o mesmo email e senha.
         </p>
       </div>
 
