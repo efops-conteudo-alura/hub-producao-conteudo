@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(gh issue:*)",
+      "Bash(find \"/c/Users/vasco/OneDrive/Documentos/projetos-alura/projeto-hub-efops/src/app/\\(dashboard\\)/producao-conteudo/validacao-ementa\" -type f -name \"*.tsx\" -o -name \"*.ts\")",
+      "Bash(npm run:*)"
+    ]
+  }
+}
