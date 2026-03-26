@@ -3,12 +3,15 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { signOut } from "next-auth/react"
-import { Home, BookOpen, FileCheck, LogOut } from "lucide-react"
+import { Home, BookOpen, FileCheck, LogOut, Megaphone, GraduationCap, BookMarked } from "lucide-react"
 
 const navItems = [
   { href: "/home", label: "Início", icon: Home },
   { href: "/biblioteca-de-prompts", label: "Biblioteca de Prompts", icon: BookOpen },
   { href: "/validacao-ementa", label: "Validação de Ementa", icon: FileCheck },
+  { href: "/briefing", label: "Briefing", icon: Megaphone },
+  { href: "/revisao-didatica", label: "Revisão Didática", icon: GraduationCap },
+  { href: "/plano-de-estudos", label: "Plano de Estudos", icon: BookMarked },
 ]
 
 export function Sidebar() {
