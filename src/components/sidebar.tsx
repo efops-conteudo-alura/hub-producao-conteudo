@@ -17,9 +17,9 @@ export function Sidebar() {
   return (
     <aside className="flex flex-col w-[116px] shrink-0 border-r border-sidebar-border bg-sidebar h-screen sticky top-0">
       {/* Cabeçalho */}
-      <div className="flex flex-col items-center justify-center py-5 px-3 border-b border-sidebar-border shrink-0 gap-0.5">
-        <span className="font-heading text-[13px] font-medium text-foreground/90 text-center leading-snug">
-          Hub de Produção de Conteúdo
+      <div className="flex flex-col items-center justify-center py-5 px-3 border-b border-sidebar-border shrink-0 gap-1">
+        <span className="font-heading text-sm font-medium text-foreground/90 text-center leading-none">
+          Conteúdo
         </span>
         <span className="text-[10px] text-muted-foreground tracking-widest uppercase">
           Alura
