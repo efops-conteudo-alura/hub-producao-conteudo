@@ -45,8 +45,10 @@ export default function SubmissoesPage() {
 
   async function handleDelete(id: string) {
     setDeletingId(id);
-    await fetch(`/api/seletor/submissoes/${id}`, { method: "DELETE" });
-    setSubmissions((prev) => prev.filter((s) => s.id !== id));
+    const res = await fetch(`/api/seletor/submissoes/${id}`, { method: "DELETE" });
+    if (res.ok) {
+      setSubmissions((prev) => prev.filter((s) => s.id !== id));
+    }
     setDeletingId(null);
     setConfirmId(null);
   }

@@ -122,24 +122,32 @@ export default function SubmissaoDetailPage({
     if (!submission) return;
     setExporting(true);
 
-    const courseToExport: Course = {
-      courseId: submission.courseId,
-      lessons: editedLessons,
-    };
+    try {
+      const res = await fetch(`/api/seletor/submissoes/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          status: "exported",
+          submittedData: { courseId: submission.courseId, lessons: editedLessons },
+        }),
+      });
 
-    exportSelectedCourse(courseToExport, editedLessons);
+      if (!res.ok) {
+        const json = await res.json().catch(() => ({}));
+        alert(json.error ?? "Erro ao salvar exportação. Tente novamente.");
+        return;
+      }
 
-    await fetch(`/api/seletor/submissoes/${id}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        status: "exported",
-        submittedData: { courseId: submission.courseId, lessons: editedLessons },
-      }),
-    });
-
-    setSubmission((prev) => (prev ? { ...prev, status: "exported" } : prev));
-    setExporting(false);
+      exportSelectedCourse(
+        { courseId: submission.courseId, lessons: editedLessons },
+        editedLessons
+      );
+      setSubmission((prev) => (prev ? { ...prev, status: "exported" } : prev));
+    } catch {
+      alert("Erro de conexão. Verifique sua internet e tente novamente.");
+    } finally {
+      setExporting(false);
+    }
   }
 
   if (loading) {

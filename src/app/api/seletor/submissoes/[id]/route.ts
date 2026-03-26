@@ -17,13 +17,19 @@ export async function GET(
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { id } = await params;
-  const submission = await prisma.submission.findUnique({
-    where: { id },
-    include: {
-      instructor: { select: { id: true, name: true, email: true } },
-      coordinator: { select: { id: true, name: true, email: true } },
-    },
-  });
+  let submission;
+  try {
+    submission = await prisma.submission.findUnique({
+      where: { id },
+      include: {
+        instructor: { select: { id: true, name: true, email: true } },
+        coordinator: { select: { id: true, name: true, email: true } },
+      },
+    });
+  } catch (e) {
+    console.error("[GET /api/seletor/submissoes/[id]]", e);
+    return NextResponse.json({ error: "Erro ao acessar o banco de dados." }, { status: 500 });
+  }
 
   if (!submission) return NextResponse.json({ error: "Não encontrado." }, { status: 404 });
 
@@ -48,7 +54,13 @@ export async function PATCH(
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { id } = await params;
-  const submission = await prisma.submission.findUnique({ where: { id } });
+  let submission;
+  try {
+    submission = await prisma.submission.findUnique({ where: { id } });
+  } catch (e) {
+    console.error("[PATCH /api/seletor/submissoes/[id]] Erro ao buscar submissão:", e);
+    return NextResponse.json({ error: "Erro ao acessar o banco de dados." }, { status: 500 });
+  }
   if (!submission) return NextResponse.json({ error: "Não encontrado." }, { status: 404 });
 
   const userId = session.user.id;
@@ -64,12 +76,24 @@ export async function PATCH(
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  const body = await req.json();
+  let body;
+  try {
+    body = await req.json();
+  } catch {
+    return NextResponse.json({ error: "Body inválido." }, { status: 400 });
+  }
+
   const data: Record<string, unknown> = {};
 
   if (isAssignedInstructor) {
     if (!body.submittedData) {
       return NextResponse.json({ error: "submittedData obrigatório." }, { status: 400 });
+    }
+    if (submission.status !== "pending") {
+      return NextResponse.json(
+        { error: "Esta tarefa já foi enviada e não pode ser alterada." },
+        { status: 409 }
+      );
     }
     data.submittedData = body.submittedData;
     data.status = "reviewed";
@@ -83,7 +107,13 @@ export async function PATCH(
     }
   }
 
-  const updated = await prisma.submission.update({ where: { id }, data });
+  let updated;
+  try {
+    updated = await prisma.submission.update({ where: { id }, data });
+  } catch (e) {
+    console.error("[PATCH /api/seletor/submissoes/[id]] Erro ao atualizar submissão:", e);
+    return NextResponse.json({ error: "Erro ao salvar alterações." }, { status: 500 });
+  }
   return NextResponse.json({ id: updated.id, status: updated.status });
 }
 
@@ -100,7 +130,13 @@ export async function DELETE(
   }
 
   const { id } = await params;
-  const submission = await prisma.submission.findUnique({ where: { id } });
+  let submission;
+  try {
+    submission = await prisma.submission.findUnique({ where: { id } });
+  } catch (e) {
+    console.error("[DELETE /api/seletor/submissoes/[id]] Erro ao buscar submissão:", e);
+    return NextResponse.json({ error: "Erro ao acessar o banco de dados." }, { status: 500 });
+  }
   if (!submission) return NextResponse.json({ error: "Não encontrado." }, { status: 404 });
 
   if (selectorRole === "COORDINATOR" && submission.coordinatorId !== session.user.id) {
@@ -114,6 +150,11 @@ export async function DELETE(
     );
   }
 
-  await prisma.submission.delete({ where: { id } });
+  try {
+    await prisma.submission.delete({ where: { id } });
+  } catch (e) {
+    console.error("[DELETE /api/seletor/submissoes/[id]] Erro ao excluir submissão:", e);
+    return NextResponse.json({ error: "Erro ao excluir submissão." }, { status: 500 });
+  }
   return NextResponse.json({ ok: true });
 }

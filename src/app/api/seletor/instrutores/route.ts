@@ -41,7 +41,14 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  const { name, email } = await req.json();
+  let body;
+  try {
+    body = await req.json();
+  } catch {
+    return NextResponse.json({ error: "Body inválido." }, { status: 400 });
+  }
+
+  const { name, email } = body;
 
   if (!name?.trim() || !email?.trim()) {
     return NextResponse.json({ error: "Nome e email são obrigatórios." }, { status: 400 });
@@ -49,25 +56,30 @@ export async function POST(req: NextRequest) {
 
   const normalizedEmail = email.trim().toLowerCase();
 
-  let user = await prisma.user.findUnique({ where: { email: normalizedEmail } });
+  try {
+    let user = await prisma.user.findUnique({ where: { email: normalizedEmail } });
 
-  if (!user) {
-    user = await prisma.user.create({
-      data: { name: name.trim(), email: normalizedEmail },
+    if (!user) {
+      user = await prisma.user.create({
+        data: { name: name.trim(), email: normalizedEmail },
+      });
+    }
+
+    const existing = await prisma.appRole.findUnique({
+      where: { userId_app: { userId: user.id, app: "select-activity" } },
     });
+
+    if (existing) {
+      return NextResponse.json({ error: "Instrutor já cadastrado." }, { status: 409 });
+    }
+
+    await prisma.appRole.create({
+      data: { userId: user.id, app: "select-activity", role: "INSTRUCTOR" },
+    });
+
+    return NextResponse.json({ id: user.id, name: user.name, email: user.email }, { status: 201 });
+  } catch (e) {
+    console.error("[POST /api/seletor/instrutores]", e);
+    return NextResponse.json({ error: "Erro ao salvar instrutor." }, { status: 500 });
   }
-
-  const existing = await prisma.appRole.findUnique({
-    where: { userId_app: { userId: user.id, app: "select-activity" } },
-  });
-
-  if (existing) {
-    return NextResponse.json({ error: "Instrutor já cadastrado." }, { status: 409 });
-  }
-
-  await prisma.appRole.create({
-    data: { userId: user.id, app: "select-activity", role: "INSTRUCTOR" },
-  });
-
-  return NextResponse.json({ id: user.id, name: user.name, email: user.email }, { status: 201 });
 }

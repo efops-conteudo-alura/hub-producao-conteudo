@@ -20,7 +20,7 @@ function statusLabel(status: string) {
 function statusClass(status: string) {
   if (status === "exported") return "bg-green-500/10 text-green-600 dark:text-green-400";
   if (status === "reviewed") return "bg-yellow-500/10 text-yellow-600 dark:text-yellow-400";
-  return "bg-yellow-500/10 text-yellow-600 dark:text-yellow-400";
+  return "bg-blue-500/10 text-blue-600 dark:text-blue-400";
 }
 
 export default function TarefasPage() {
@@ -87,9 +87,10 @@ export default function TarefasPage() {
             Concluídas
           </h2>
           {done.map((t) => (
-            <div
+            <Link
               key={t.id}
-              className="flex items-center justify-between bg-card/60 rounded-xl border border-border px-5 py-4 opacity-70"
+              href={`/seletor-de-atividades/tarefas/${t.id}`}
+              className="flex items-center justify-between bg-card/60 rounded-xl border border-border px-5 py-4 opacity-70 hover:opacity-100 hover:border-primary/30 transition-all"
             >
               <div className="flex flex-col gap-0.5">
                 <p className="text-sm font-medium text-foreground">{t.courseId}</p>
@@ -100,7 +101,7 @@ export default function TarefasPage() {
               <span className={`text-xs font-semibold px-2 py-1 rounded-full ${statusClass(t.status)}`}>
                 {statusLabel(t.status)}
               </span>
-            </div>
+            </Link>
           ))}
         </section>
       )}

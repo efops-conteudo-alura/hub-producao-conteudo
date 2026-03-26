@@ -28,14 +28,20 @@ export async function GET() {
       ? {}
       : { coordinatorId: userId };
 
-  const submissions = await prisma.submission.findMany({
-    where,
-    include: {
-      instructor: { select: { id: true, name: true, email: true } },
-      coordinator: { select: { id: true, name: true, email: true } },
-    },
-    orderBy: { createdAt: "desc" },
-  });
+  let submissions;
+  try {
+    submissions = await prisma.submission.findMany({
+      where,
+      include: {
+        instructor: { select: { id: true, name: true, email: true } },
+        coordinator: { select: { id: true, name: true, email: true } },
+      },
+      orderBy: { createdAt: "desc" },
+    });
+  } catch (e) {
+    console.error("[GET /api/seletor/submissoes]", e);
+    return NextResponse.json({ error: "Erro ao acessar o banco de dados." }, { status: 500 });
+  }
 
   return NextResponse.json(
     submissions.map((s) => ({

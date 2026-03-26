@@ -76,23 +76,27 @@ export default function TarefaDetailPage({
     setSending(true);
     setError(null);
 
-    const submittedData = { courseId: course.courseId, lessons: selectedLessons };
+    try {
+      const submittedData = { courseId: course.courseId, lessons: selectedLessons };
 
-    const res = await fetch(`/api/seletor/submissoes/${id}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ submittedData }),
-    });
+      const res = await fetch(`/api/seletor/submissoes/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ submittedData }),
+      });
 
-    if (!res.ok) {
-      const json = await res.json();
-      setError(json.error ?? "Erro ao enviar revisão.");
+      if (!res.ok) {
+        const json = await res.json().catch(() => ({}));
+        setError(json.error ?? "Erro ao enviar revisão.");
+        return;
+      }
+
+      setStep(4);
+    } catch {
+      setError("Erro de conexão. Verifique sua internet e tente novamente.");
+    } finally {
       setSending(false);
-      return;
     }
-
-    setStep(4);
-    setSending(false);
   }
 
   if (loading) {
