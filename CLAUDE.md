@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 # Hub de Produção de Conteúdo — Alura
 
-Hub para coordenadores de conteúdo da Alura. Centraliza ferramentas de IA para produção de conteúdo: briefing, validação de ementa, plano de estudos, revisão didática e pesquisa de mercado.
+Hub para coordenadores de conteúdo da Alura. Centraliza ferramentas de IA para produção de conteúdo e o módulo Seletor de Atividades (migrado do select_activity).
 
 **Banco de dados compartilhado com o hub-efops** (mesmo PostgreSQL/Neon). A autenticação usa o mesmo sistema de usuários — acesso controlado pela AppRole `hub-producao-conteudo`.
 
@@ -38,29 +38,56 @@ npx prisma generate  # gera o client (não roda migrations — schema gerenciado
 ```
 src/
   app/
-    (auth)/         → páginas públicas: login
-    (dashboard)/    → páginas protegidas pelo middleware
-      <ferramenta>/
-        page.tsx              → Server Component (busca dados via Prisma direto)
-        _components/          → componentes exclusivos da ferramenta
+    (auth)/                      → páginas públicas
+      login/                     → login
+      primeiro-acesso/           → cadastro de coordenadores (seletor)
+      criar-senha/               → definir senha de coordenadores (seletor)
+    (dashboard)/                 → páginas protegidas pelo middleware
+      home/
+      biblioteca-de-prompts/
+      validacao-ementa/
+      pesquisa-mercado/
+      revisao-didatica/          → placeholder (não implementado)
+      plano-de-estudos/          → placeholder (não implementado)
+      seletor-de-atividades/     → módulo Seletor de Atividades
+        layout.tsx               → envolve com <AppProvider>
+        page.tsx                 → redireciona por role (instrutor→tarefas, outros→submissoes)
+        upload/                  → upload de JSON + criação/seleção de instrutor
+        instrutores/             → listagem de instrutores cadastrados
+        tarefas/                 → visão do instrutor (lista + detalhe em 3 etapas)
+        submissoes/              → visão do coordenador (lista + detalhe com diff e export)
+        _components/             → DropZone, StepBar, ExerciseCard, LessonAccordion
     api/
-      <ferramenta>/
-        route.ts              → GET, POST
-        [id]/route.ts         → GET, PUT, DELETE
-  components/       → componentes globais (sidebar, profile, theme)
-  components/ui/    → componentes shadcn (nunca editar manualmente)
-  lib/              → auth.ts, db.ts, utils.ts, crypto.ts
-  types/next-auth.d.ts → extensão dos tipos do NextAuth
-  middleware.ts     → proteção de rotas autenticadas
+      biblioteca-de-prompts/
+      validacao-ementa/
+      pesquisa-mercado/
+      seletor/
+        submissoes/              → GET/POST + [id] GET/PATCH/DELETE
+        instrutores/             → GET/POST
+        coordenadores/           → GET
+        auth/
+          register/              → cria usuário + AppRoles (hub-producao:USER + select-activity:COORDINATOR)
+          set-password/          → define senha de coordenador sem senha
+  components/                    → Sidebar (global), componentes de UI compartilhados
+  components/ui/                 → componentes shadcn (nunca editar manualmente)
+  context/
+    AppContext.tsx                → estado global do seletor (curso selecionado, exercícios, edições)
+  lib/
+    auth.ts / auth.config.ts     → NextAuth (auth.config.ts é Edge-safe, sem Prisma)
+    db.ts                        → cliente Prisma
+    storage.ts                   → helpers de sessionStorage (seletor)
+    export.ts                    → exportSelectedCourse (download JSON)
+  types/
+    course.ts                    → tipos do seletor: Course, Lesson, Exercise, Alternative
+    next-auth.d.ts               → extensão dos tipos do NextAuth
+  middleware.ts                  → proteção de rotas + redirect de instrutor
 prisma/
-  schema.prisma     → cópia do schema (somente leitura aqui — source of truth está no hub-efops)
+  schema.prisma                  → cópia do schema (somente leitura — source of truth no hub-efops)
 ```
 
 ---
 
 ## Convenções de código
-
-Seguir as mesmas convenções do hub-efops:
 
 - Server Components por padrão em `page.tsx`
 - `"use client"` apenas quando necessário
@@ -69,26 +96,49 @@ Seguir as mesmas convenções do hub-efops:
 - 401 = não autenticado, 403 = autenticado sem permissão
 - Nunca usar `any` no TypeScript
 - Ícones via lucide-react
+- Scroll ao topo entre etapas: `document.getElementById("main-scroll")?.scrollTo({ top: 0, behavior: "instant" })`
 
 ---
 
-## Autenticação
+## Autenticação e roles
 
+### Hub de Produção de Conteúdo
 - App: `hub-producao-conteudo`
 - Roles: `USER` | `ADMIN`
-- Middleware protege tudo exceto: `api/auth`, `login`
-- `session.user.id` e `session.user.role` disponíveis via JWT
+- `session.user.role` — role neste app
+
+### Seletor de Atividades
+- App: `select-activity`
+- Roles: `INSTRUCTOR` | `COORDINATOR` | `ADMIN`
+- `session.user.selectorRole` — role no seletor
+
+### Comportamento por tipo de usuário
+| Tipo | `role` | `selectorRole` | Acesso |
+|---|---|---|---|
+| Admin | `ADMIN` | — | Tudo |
+| Coordenador (hub-producao) | `USER` | `COORDINATOR` | Tudo do hub + seletor como coordenador |
+| Instrutor | `""` / ausente | `INSTRUCTOR` | Apenas `/seletor-de-atividades/tarefas` |
+
+- Instrutores são redirecionados para `/seletor-de-atividades/tarefas` pelo callback `authorized` em `auth.config.ts` (Edge)
+- O helper `getSelectorRole(session)` nas API routes: se `role === "ADMIN"` retorna `"ADMIN"`, senão retorna `selectorRole`
+- Sidebar oculta módulos do hub para instrutores (apenas o item do seletor é exibido)
+
+### Acesso ao seletor para coordenadores sem conta
+1. Coordenador acessa `/primeiro-acesso` → cria conta → recebe `hub-producao-conteudo:USER` + `select-activity:COORDINATOR`
+2. Se já tem conta mas sem senha → acessa `/criar-senha`
 
 ---
 
-## Ferramentas planejadas (issues abertas no hub-efops)
+## Módulos implementados
 
-| Ferramenta | Issue | O que faz |
+| Módulo | Rota | Status |
 |---|---|---|
-| Briefing | #1 | Gera briefing para o marketing a partir da ementa |
-| Revisão Didática | #3 | Revisão de plano de aula e outros artefatos |
-| Plano de Estudos | #5 | Criação de plano de estudos |
-| Pesquisa de Mercado | #7 | Busca intencional na base de cursos com IA |
+| Biblioteca de Prompts | `/biblioteca-de-prompts` | ✅ Implementado |
+| Validação de Ementa | `/validacao-ementa` | ✅ Implementado |
+| Pesquisa de Mercado | `/pesquisa-mercado` | ✅ Implementado |
+| Seletor de Atividades | `/seletor-de-atividades` | ✅ Implementado |
+| Revisão Didática | `/revisao-didatica` | 🔲 Placeholder |
+| Plano de Estudos | `/plano-de-estudos` | 🔲 Placeholder |
 
 ---
 
@@ -98,3 +148,4 @@ Seguir as mesmas convenções do hub-efops:
 - Não criar componentes em `src/components/ui/` — usar `npx shadcn add <componente>`
 - Não usar `any` no TypeScript
 - Não passar dados do body do request diretamente para o Prisma sem validação
+- Não editar `auth.config.ts` para importar Prisma ou bcrypt — esse arquivo roda no Edge runtime
