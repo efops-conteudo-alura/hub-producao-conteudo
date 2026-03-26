@@ -2,58 +2,59 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { signOut, useSession } from "next-auth/react"
+import { signOut } from "next-auth/react"
 import { Home, BookOpen, FileCheck, LogOut } from "lucide-react"
 
 const navItems = [
   { href: "/home", label: "Início", icon: Home },
-  { href: "/biblioteca-de-prompts", label: "Biblioteca", icon: BookOpen },
-  { href: "/validacao-ementa", label: "Validação", icon: FileCheck },
+  { href: "/biblioteca-de-prompts", label: "Biblioteca de Prompts", icon: BookOpen },
+  { href: "/validacao-ementa", label: "Validação de Ementa", icon: FileCheck },
 ]
 
 export function Sidebar() {
   const pathname = usePathname()
-  const { data: session } = useSession()
 
   return (
-    <aside className="flex flex-col w-[62px] shrink-0 border-r border-border bg-sidebar h-screen sticky top-0">
-      {/* Logo */}
-      <div className="flex items-center justify-center h-14 border-b border-border shrink-0">
-        <span className="font-heading text-[11px] font-medium text-foreground/80 tracking-wide">
+    <aside className="flex flex-col w-[92px] shrink-0 border-r border-border bg-sidebar h-screen sticky top-0">
+      {/* Cabeçalho com pontilhado */}
+      <div className="relative flex items-center justify-center h-16 border-b border-border overflow-hidden shrink-0">
+        <div className="dot-pattern absolute inset-0" />
+        <span className="relative font-heading text-sm font-medium text-foreground/90 tracking-wide leading-none text-center">
           Hub
         </span>
       </div>
 
       {/* Navegação */}
-      <nav className="flex-1 flex flex-col items-center py-2 gap-0.5">
+      <nav className="flex-1 flex flex-col items-center py-4 gap-1 px-2">
         {navItems.map(({ href, label, icon: Icon }) => {
           const isActive = pathname === href || pathname.startsWith(href + "/")
           return (
             <Link
               key={href}
               href={href}
-              className={`flex flex-col items-center justify-center gap-1.5 w-full py-3 transition-colors ${
+              className={`flex flex-col items-center justify-center gap-2 w-full py-4 px-2 rounded-xl transition-colors ${
                 isActive
-                  ? "text-foreground bg-muted/60"
-                  : "text-muted-foreground hover:text-foreground hover:bg-muted/30"
+                  ? "bg-muted text-foreground"
+                  : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
               }`}
             >
-              <Icon size={17} strokeWidth={isActive ? 2 : 1.5} />
-              <span className="text-[9px] leading-none tracking-wide">{label}</span>
+              <Icon size={22} strokeWidth={isActive ? 2 : 1.5} />
+              <span className="text-[11px] font-semibold leading-tight text-center">
+                {label}
+              </span>
             </Link>
           )
         })}
       </nav>
 
       {/* Logout */}
-      <div className="shrink-0 border-t border-border">
+      <div className="shrink-0 border-t border-border px-2 py-3">
         <button
           onClick={() => signOut({ callbackUrl: "/login" })}
-          title={`Sair${session?.user?.name ? ` (${session.user.name})` : ""}`}
-          className="flex flex-col items-center justify-center gap-1.5 w-full py-3 text-muted-foreground hover:text-foreground transition-colors"
+          className="flex flex-col items-center justify-center gap-2 w-full py-4 px-2 rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors"
         >
-          <LogOut size={17} strokeWidth={1.5} />
-          <span className="text-[9px] leading-none tracking-wide">Sair</span>
+          <LogOut size={20} strokeWidth={1.5} />
+          <span className="text-[11px] font-semibold leading-none">Sair</span>
         </button>
       </div>
     </aside>
