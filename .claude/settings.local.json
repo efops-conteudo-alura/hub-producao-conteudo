@@ -3,7 +3,11 @@
     "allow": [
       "Bash(gh issue:*)",
       "Bash(find \"/c/Users/vasco/OneDrive/Documentos/projetos-alura/projeto-hub-efops/src/app/\\(dashboard\\)/producao-conteudo/validacao-ementa\" -type f -name \"*.tsx\" -o -name \"*.ts\")",
-      "Bash(npm run:*)"
+      "Bash(npm run:*)",
+      "Bash(find /c/Users/vasco/OneDrive/Documentos/projetos-alura/select_activity -maxdepth 1 -type f \\\\\\(-name *.css -o -name .env* \\\\\\) ! -name .env.local)",
+      "Bash(ls \"C:/Users/vasco/OneDrive/Documentos/projetos-alura/projeto-hub-producao-conteudo/src/app/\\(dashboard\\)/\")",
+      "Bash(ls \"C:/Users/vasco/OneDrive/Documentos/projetos-alura/projeto-hub-producao-conteudo/src/app/\\(auth\\)/\")",
+      "Bash(ls:*)"
     ]
   }
 }

@@ -16,7 +16,7 @@ const lora = Lora({
 
 export const metadata: Metadata = {
   title: "Hub de Produção de Conteúdo",
-  description: "Ferramentas de IA para produção de conteúdo — Alura",
+  description: "Ferramentas para coordenadores de conteúdo da Alura — do planejamento à entrega.",
 };
 
 export default function RootLayout({
