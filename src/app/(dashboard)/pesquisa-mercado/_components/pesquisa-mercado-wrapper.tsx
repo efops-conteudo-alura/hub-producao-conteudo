@@ -27,6 +27,9 @@ export function PesquisaMercadoWrapper({ pesquisasIniciais }: Props) {
   return (
     <>
       <PesquisaForm onNovaPesquisa={adicionarPesquisa} />
+      {pesquisas.length > 0 && (
+        <div className="dot-pattern h-12 max-w-3xl rounded-xl my-10 opacity-60" />
+      )}
       <HistoricoPesquisas pesquisas={pesquisas} />
     </>
   )
