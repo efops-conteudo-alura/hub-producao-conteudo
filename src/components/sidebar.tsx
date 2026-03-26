@@ -27,17 +27,17 @@ export function Sidebar() {
       </div>
 
       {/* Navegação */}
-      <nav className="flex-1 flex flex-col items-center py-4 gap-1 px-2">
+      <nav className="flex-1 flex flex-col items-center py-4 gap-2 px-2">
         {navItems.map(({ href, label, icon: Icon }) => {
           const isActive = pathname === href || pathname.startsWith(href + "/")
           return (
             <Link
               key={href}
               href={href}
-              className={`flex flex-col items-center justify-center gap-2 w-full py-4 px-2 rounded-xl transition-colors ${
+              className={`flex flex-col items-center justify-center gap-2 w-full py-5 px-2 rounded-xl transition-colors ${
                 isActive
-                  ? "bg-muted/80 text-foreground"
-                  : "text-muted-foreground hover:text-foreground hover:bg-muted/40"
+                  ? "bg-muted text-foreground"
+                  : "text-foreground/70 hover:text-foreground hover:bg-muted/50"
               }`}
             >
               <Icon size={22} strokeWidth={isActive ? 2 : 1.5} />
