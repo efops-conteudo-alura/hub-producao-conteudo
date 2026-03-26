@@ -221,6 +221,10 @@ export default function SubmissaoDetailPage({
             texto riscado = original antes da edição do instrutor
           </span>
           <span className="flex items-center gap-1.5">
+            <span className="w-2 h-2 rounded-full bg-green-500/60 inline-block"></span>
+            texto verde = alterado pelo instrutor
+          </span>
+          <span className="flex items-center gap-1.5">
             <span className="w-2 h-2 rounded-full bg-yellow-500/60 inline-block"></span>
             alternativa correta alterada
           </span>

@@ -91,11 +91,15 @@ export function ExerciseCard({
           {originalExercise && originalExercise.title !== exercise.title && (
             <p className="text-xs line-through text-destructive/70">{originalExercise.title}</p>
           )}
-          <p className="font-semibold text-foreground">{exercise.title}</p>
+          <p className={`font-semibold ${originalExercise && originalExercise.title !== exercise.title ? "text-green-600 dark:text-green-400" : "text-foreground"}`}>
+            {exercise.title}
+          </p>
           {originalExercise && originalExercise.text !== exercise.text && (
             <p className="text-xs line-through text-destructive/70 mt-1">{originalExercise.text}</p>
           )}
-          <p className="text-sm text-foreground/70 mt-1">{exercise.text}</p>
+          <p className={`text-sm mt-1 ${originalExercise && originalExercise.text !== exercise.text ? "text-green-600 dark:text-green-400" : "text-foreground/70"}`}>
+            {exercise.text}
+          </p>
         </div>
       )}
 
@@ -165,7 +169,7 @@ export function ExerciseCard({
                   {textChanged && (
                     <p className="text-xs line-through text-destructive/70">{origAlt!.text}</p>
                   )}
-                  <span>{alt.text}</span>
+                  <span className={textChanged ? "text-green-600 dark:text-green-400" : ""}>{alt.text}</span>
                   {correctChanged && (
                     <span className="ml-2 text-xs text-yellow-500">
                       {alt.correct
@@ -184,7 +188,7 @@ export function ExerciseCard({
                 <p className="text-xs line-through text-destructive/70 pl-5">{origAlt!.opinion}</p>
               )}
               {alt.opinion && (
-                <p className="text-xs text-muted-foreground pl-5">{alt.opinion}</p>
+                <p className={`text-xs pl-5 ${opinionChanged ? "text-green-600 dark:text-green-400" : "text-muted-foreground"}`}>{alt.opinion}</p>
               )}
             </div>
           );

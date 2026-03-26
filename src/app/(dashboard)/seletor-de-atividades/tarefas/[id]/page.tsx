@@ -35,6 +35,10 @@ export default function TarefaDetailPage({
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    document.getElementById("main-scroll")?.scrollTo({ top: 0, behavior: "instant" });
+  }, [step]);
+
+  useEffect(() => {
     fetch(`/api/seletor/submissoes/${id}`)
       .then((r) => r.json())
       .then((data: TaskDetail) => {
