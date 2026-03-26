@@ -10,6 +10,16 @@ export async function PUT(
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
 
   const { id } = await params
+  const prompt = await prisma.prompt.findUnique({ where: { id } })
+  if (!prompt) return NextResponse.json({ error: "Não encontrado" }, { status: 404 })
+
+  const isAdmin = session.user.role === "ADMIN"
+  const isCreator = prompt.autorId === session.user.id
+
+  if (!isAdmin && !isCreator) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+  }
+
   const body = await req.json()
   const { titulo, descricao, conteudo, categoria } = body
 
@@ -20,7 +30,7 @@ export async function PUT(
     return NextResponse.json({ error: "Conteúdo é obrigatório" }, { status: 400 })
   }
 
-  const prompt = await prisma.prompt.update({
+  const updated = await prisma.prompt.update({
     where: { id },
     data: {
       titulo: titulo.trim(),
@@ -29,7 +39,7 @@ export async function PUT(
       categoria: categoria?.trim() || null,
     },
   })
-  return NextResponse.json(prompt)
+  return NextResponse.json(updated)
 }
 
 export async function DELETE(
