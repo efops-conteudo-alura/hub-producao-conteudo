@@ -20,7 +20,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         const user = await prisma.user.findUnique({ where: { email } });
         if (!user) return null;
 
-        // Busca ambos os roles em paralelo
+        // Busca roles nos dois apps em paralelo
         const [hubRole, selectorAppRole] = await Promise.all([
           prisma.appRole.findUnique({
             where: { userId_app: { userId: user.id, app: "hub-producao-conteudo" } },
@@ -35,18 +35,23 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           throw new Error("NoAccess");
         }
 
-        // Instrutor: login só com email, sem senha
-        if (!hubRole && selectorAppRole?.role === "INSTRUCTOR") {
+        // Instrutor: login so com email, sem senha
+        // Aceita INSTRUCTOR tanto no hub-producao-conteudo quanto no select-activity (compat legada)
+        const isInstructor =
+          hubRole?.role === "INSTRUCTOR" ||
+          (!hubRole && selectorAppRole?.role === "INSTRUCTOR");
+
+        if (isInstructor) {
           return {
             id: user.id,
             email: user.email,
             name: user.name,
-            role: "",
-            selectorRole: "INSTRUCTOR",
+            role: hubRole?.role ?? "",
+            selectorRole: selectorAppRole?.role,
           };
         }
 
-        // Todos os outros casos exigem senha
+        // ADMIN e COORDINATOR exigem senha
         if (!user.password) {
           throw new Error("NeedPassword");
         }
