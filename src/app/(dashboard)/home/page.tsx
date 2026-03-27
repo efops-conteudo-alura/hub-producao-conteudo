@@ -5,7 +5,7 @@ export default async function HomePage() {
 
   return (
     <div className="p-8">
-      <h1 className="text-2xl font-bold mb-2">Hub de Produção de Conteúdo</h1>
+      <h1 className="hub-page-title mb-8">Hub de Produção de Conteúdo</h1>
       <p className="text-muted-foreground">Olá, {session?.user?.name ?? "usuário"}.</p>
     </div>
   );
