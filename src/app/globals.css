@@ -8,9 +8,9 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-  --font-heading: var(--font-lora);
+  --font-sans: var(--font-roboto-flex);
+  --font-mono: var(--font-jetbrains-mono);
+  --font-title: var(--font-encode-sans);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -40,87 +40,82 @@
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
-  --radius-sm: calc(var(--radius) * 0.6);
-  --radius-md: calc(var(--radius) * 0.8);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) * 1.4);
-  --radius-2xl: calc(var(--radius) * 1.8);
-  --radius-3xl: calc(var(--radius) * 2.2);
-  --radius-4xl: calc(var(--radius) * 2.6);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
+  --radius-3xl: calc(var(--radius) + 12px);
+  --radius-4xl: calc(var(--radius) + 16px);
 }
 
 :root {
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --radius: 0.625rem;
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  --radius: 0.5rem;
+  --background: #f2f2f3;
+  --foreground: #0c0d0e;
+  --card: #ffffff;
+  --card-foreground: #0c0d0e;
+  --popover: #ffffff;
+  --popover-foreground: #0c0d0e;
+  --primary: #052fd3;
+  --primary-foreground: #ffffff;
+  --secondary: #e1e2e5;
+  --secondary-foreground: #0c0d0e;
+  --muted: #e1e2e5;
+  --muted-foreground: #46474e;
+  --accent: #e1e2e5;
+  --accent-foreground: #0c0d0e;
+  --destructive: #b8001f;
+  --border: #e1e2e5;
+  --input: #e1e2e5;
+  --ring: #052fd3;
+  --chart-1: #052fd3;
+  --chart-2: #01cb29;
+  --chart-3: #42cbe7;
+  --chart-4: #ffd500;
+  --chart-5: #fc6008;
+  --sidebar: #ffffff;
+  --sidebar-foreground: #0c0d0e;
+  --sidebar-primary: #052fd3;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #f2f2f3;
+  --sidebar-accent-foreground: #0c0d0e;
+  --sidebar-border: #e1e2e5;
+  --sidebar-ring: #052fd3;
 }
 
 .dark {
-  /* Fundo principal */
-  --background: oklch(0.14 0 0);
-  --foreground: oklch(0.95 0 0);
-  /* Cards e popovers com contraste visível sobre o fundo */
-  --card: oklch(0.22 0 0);
-  --card-foreground: oklch(0.95 0 0);
-  --popover: oklch(0.22 0 0);
-  --popover-foreground: oklch(0.95 0 0);
-  /* Cores de ação — serão substituídas pelas cores exatas da Alura */
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.12 0 0);
-  --secondary: oklch(0.26 0 0);
-  --secondary-foreground: oklch(0.95 0 0);
-  --muted: oklch(0.24 0 0);
-  --muted-foreground: oklch(0.62 0 0);
-  --accent: oklch(0.26 0 0);
-  --accent-foreground: oklch(0.95 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  /* Bordas e inputs com contraste claro */
-  --border: oklch(1 0 0 / 16%);
-  --input: oklch(1 0 0 / 20%);
-  --ring: oklch(0.50 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  /* Sidebar bem mais escura que o conteúdo */
-  --sidebar: oklch(0.09 0 0);
-  --sidebar-foreground: oklch(0.95 0 0);
-  --sidebar-primary: oklch(0.922 0 0);
-  --sidebar-primary-foreground: oklch(0.09 0 0);
-  --sidebar-accent: oklch(0.24 0 0);
-  --sidebar-accent-foreground: oklch(0.95 0 0);
-  --sidebar-border: oklch(1 0 0 / 12%);
-  --sidebar-ring: oklch(0.50 0 0);
+  --background: #1b1c1e;
+  --foreground: #f4f5f6;
+  --card: #0c0d0e;
+  --card-foreground: #f4f5f6;
+  --popover: #0c0d0e;
+  --popover-foreground: #f4f5f6;
+  --primary: #052fd3;
+  --primary-foreground: #ffffff;
+  --secondary: #37393f;
+  --secondary-foreground: #f4f5f6;
+  --muted: #292b2e;
+  --muted-foreground: #888d96;
+  --accent: #37393f;
+  --accent-foreground: #f4f5f6;
+  --destructive: #b8001f;
+  --border: #54565f;
+  --input: #3d3f45;
+  --ring: #303136;
+  --chart-1: #052fd3;
+  --chart-2: #01cb29;
+  --chart-3: #42cbe7;
+  --chart-4: #ffd500;
+  --chart-5: #fc6008;
+  --sidebar: #131416;
+  --sidebar-foreground: #b1b2b9;
+  --sidebar-primary: #37393f;
+  --sidebar-primary-foreground: #f4f5f6;
+  --sidebar-accent: #37393f;
+  --sidebar-accent-foreground: #f4f5f6;
+  --sidebar-border: #222326;
+  --sidebar-ring: #303136;
 }
 
 @layer base {
@@ -130,16 +125,87 @@
   body {
     @apply bg-background text-foreground;
   }
-  html {
-    @apply font-sans;
-    font-size: 17px;
-  }
-  h1, h2 {
-    @apply font-heading;
+  .dark [data-slot="card"] {
+    border-color: transparent;
   }
 }
 
-/* Padrão pontilhado — inspirado na Alura */
+/*
+  Sistema de tipografia — Alura Design System
+  ─────────────────────────────────────────────────────────────
+  Encode Sans  → títulos de módulo, card, tabela, gráfico
+  Roboto Flex  → corpo, subtítulos, labels, dropdowns, botões
+  JetBrains    → abas, tags, números, IDs, datas, código
+
+  Para alterar globalmente: edite apenas este bloco.
+  Para aplicar: use as classes .hub-* nos componentes.
+  ─────────────────────────────────────────────────────────────
+*/
+@layer components {
+  .hub-page-title {
+    font-family: var(--font-encode-sans);
+    @apply text-4xl font-light tracking-tight text-foreground;
+  }
+
+  .hub-section-title {
+    font-family: var(--font-roboto-flex);
+    @apply text-base font-normal text-muted-foreground;
+  }
+
+  .hub-card-title {
+    font-family: var(--font-encode-sans);
+    @apply text-xl font-normal text-foreground;
+  }
+
+  .hub-chart-title {
+    font-family: var(--font-encode-sans);
+    @apply text-lg font-normal text-foreground;
+  }
+
+  .hub-table-header {
+    font-family: var(--font-encode-sans);
+    @apply text-xs font-normal uppercase tracking-wider text-muted-foreground;
+  }
+
+  .hub-tab-label {
+    font-family: var(--font-jetbrains-mono);
+    @apply text-xs font-medium uppercase tracking-wide;
+  }
+
+  .hub-tag {
+    font-family: var(--font-jetbrains-mono);
+    @apply text-xs uppercase tracking-wider rounded-full border px-3 py-1 inline-flex items-center gap-1.5;
+  }
+
+  .hub-number {
+    font-family: var(--font-jetbrains-mono);
+  }
+}
+
+/* ── Overrides de identidade visual ──────────────────────────────────────────
+   Regras fora de @layer têm prioridade máxima sobre utilities do Tailwind.
+   Edite AQUI para ajustar globalmente, sem tocar nos componentes.
+   ──────────────────────────────────────────────────────────────────────────── */
+
+/* Roboto Flex como fonte padrão — tabelas e conteúdo genérico herdam daqui */
+body {
+  font-family: var(--font-roboto-flex, sans-serif);
+}
+
+/* CardTitle do shadcn tem font-semibold hardcoded — sobrescrito aqui */
+[data-slot="card-title"] {
+  font-family: var(--font-encode-sans);
+  font-weight: 400;
+}
+
+/* Badges: JetBrains Mono + caixa alta */
+[data-slot="badge"] {
+  font-family: var(--font-jetbrains-mono);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* Padrão pontilhado — específico do hub-producao-conteudo */
 .dot-pattern {
   background-image: radial-gradient(circle, oklch(1 0 0 / 0.22) 1px, transparent 1px);
   background-size: 16px 16px;
