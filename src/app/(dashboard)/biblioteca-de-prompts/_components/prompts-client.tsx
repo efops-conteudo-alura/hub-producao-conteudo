@@ -231,7 +231,7 @@ export function PromptsClient({ prompts: initial, userId, isAdmin }: Props) {
       {/* Header */}
       <div className="flex items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold">Biblioteca de Prompts</h1>
+          <h1 className="hub-page-title">Biblioteca de Prompts</h1>
           <p className="text-muted-foreground text-sm">
             {prompts.length} prompt{prompts.length !== 1 ? "s" : ""} · compartilhados pelo time
           </p>
