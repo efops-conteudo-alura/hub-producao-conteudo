@@ -1,17 +1,21 @@
 import type { Metadata } from "next";
-import { Geist, Lora } from "next/font/google";
+import { Roboto_Flex, JetBrains_Mono, Encode_Sans } from "next/font/google";
 import "./globals.css";
 import { Providers } from "./providers";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const robotoFlex = Roboto_Flex({
+  variable: "--font-roboto-flex",
   subsets: ["latin"],
 });
 
-const lora = Lora({
-  variable: "--font-lora",
+const jetbrainsMono = JetBrains_Mono({
+  variable: "--font-jetbrains-mono",
   subsets: ["latin"],
-  weight: ["400", "500", "600"],
+});
+
+const encodeSans = Encode_Sans({
+  variable: "--font-encode-sans",
+  subsets: ["latin"],
 });
 
 export const metadata: Metadata = {
@@ -25,7 +29,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="pt-BR" className={`${geistSans.variable} ${lora.variable} h-full antialiased`} suppressHydrationWarning>
+    <html lang="pt-BR" className={`${robotoFlex.variable} ${jetbrainsMono.variable} ${encodeSans.variable} h-full antialiased`} suppressHydrationWarning>
       <body className="min-h-full flex flex-col">
         <Providers>{children}</Providers>
       </body>
