@@ -147,7 +147,7 @@ export default function UploadPage() {
       {step === 1 && (
         <>
           <div className="flex flex-col items-center gap-2 text-center">
-            <h1 className="font-heading text-3xl font-bold text-primary">
+            <h1 className="hub-page-title">
               Upload do arquivo
             </h1>
             <p className="text-muted-foreground">
@@ -178,7 +178,7 @@ export default function UploadPage() {
       {step === 2 && course && (
         <>
           <div className="flex flex-col items-center gap-2 text-center">
-            <h1 className="font-heading text-3xl font-bold text-primary">
+            <h1 className="hub-page-title">
               Selecionar instrutor
             </h1>
             <p className="text-muted-foreground">
@@ -293,7 +293,7 @@ export default function UploadPage() {
             <div className="w-16 h-16 rounded-full bg-green-500/10 flex items-center justify-center text-3xl">
               ✓
             </div>
-            <h1 className="font-heading text-3xl font-bold text-primary">
+            <h1 className="hub-page-title">
               Submissão enviada!
             </h1>
             <p className="text-muted-foreground">
