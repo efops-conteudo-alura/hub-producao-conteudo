@@ -62,7 +62,7 @@ export default function InstrutoresPage() {
         >
           ← Voltar
         </Link>
-        <h1 className="font-heading text-2xl font-bold text-foreground">
+        <h1 className="hub-page-title">
           Instrutores
         </h1>
       </div>
