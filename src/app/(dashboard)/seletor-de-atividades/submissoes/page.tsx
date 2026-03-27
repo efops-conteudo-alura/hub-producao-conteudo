@@ -56,7 +56,7 @@ export default function SubmissoesPage() {
   return (
     <main className="flex flex-1 flex-col px-6 py-10 max-w-3xl mx-auto w-full gap-6">
       <div className="flex items-center justify-between">
-        <h1 className="font-heading text-2xl font-bold text-foreground">
+        <h1 className="hub-page-title">
           Submissões
         </h1>
         <button
