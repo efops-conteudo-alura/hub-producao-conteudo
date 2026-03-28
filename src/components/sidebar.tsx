@@ -24,7 +24,7 @@ function NavLink({ href, label, icon: Icon }: { href: string; label: string; ico
   return (
     <Link
       href={href}
-      className={`flex flex-col items-center justify-center gap-2 w-full py-5 px-2 rounded-xl transition-colors ${
+      className={`flex flex-col items-center justify-center gap-2 w-full py-4 px-2 rounded-xl transition-colors ${
         isActive
           ? "bg-muted text-foreground"
           : "text-foreground/70 hover:text-foreground hover:bg-muted/50"
@@ -52,7 +52,7 @@ export function Sidebar() {
   const visibleBottomItems = isInstructor ? [] : bottomNavItems
 
   return (
-    <aside className="flex flex-col w-[116px] shrink-0 border-r border-sidebar-border bg-sidebar h-screen sticky top-0">
+    <aside className="flex flex-col w-[148px] shrink-0 border-r border-sidebar-border bg-sidebar h-screen sticky top-0">
       {/* Cabeçalho */}
       <div className="flex flex-col items-center justify-center py-5 px-3 border-b border-sidebar-border shrink-0 gap-1">
         <span className="font-heading text-sm font-medium text-foreground/90 text-center leading-none">
