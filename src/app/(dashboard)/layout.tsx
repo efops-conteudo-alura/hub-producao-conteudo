@@ -4,7 +4,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   return (
     <div className="flex h-screen overflow-hidden">
       <Sidebar />
-      <main id="main-scroll" className="flex-1 overflow-y-auto">{children}</main>
+      <main id="main-scroll" className="flex-1 overflow-y-auto">
+        <div className="max-w-5xl mx-auto">{children}</div>
+      </main>
     </div>
   )
 }
