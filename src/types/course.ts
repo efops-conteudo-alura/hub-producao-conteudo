@@ -9,6 +9,8 @@ export type Exercise = {
   title: string;
   text: string;
   kind: string;
+  dataTag?: string;
+  sampleAnswer?: string;
   alternatives: Alternative[];
   comment?: string;
   isSelected?: boolean;
@@ -16,6 +18,7 @@ export type Exercise = {
 
 export type Lesson = {
   lessonNumber: number;
+  title?: string;
   exercises: Exercise[];
 };
 

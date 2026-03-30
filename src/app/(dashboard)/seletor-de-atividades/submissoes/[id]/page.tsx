@@ -36,8 +36,15 @@ export default function SubmissaoDetailPage({
       .then((r) => r.json())
       .then((data) => {
         setSubmission(data);
-        const lessons = Array.isArray(data.submittedData?.lessons) ? data.submittedData.lessons : [];
-        setEditedLessons(lessons);
+        const lessons: Lesson[] = Array.isArray(data.submittedData?.lessons) ? data.submittedData.lessons : [];
+        const originalTitles: Record<number, string | undefined> = {};
+        (data.originalData?.lessons ?? []).forEach((l: Lesson) => {
+          originalTitles[l.lessonNumber] = l.title;
+        });
+        const normalized = lessons
+          .map((l) => ({ ...l, title: l.title ?? originalTitles[l.lessonNumber] }))
+          .sort((a, b) => a.lessonNumber - b.lessonNumber);
+        setEditedLessons(normalized);
         setLoading(false);
       })
       .catch(() => setLoading(false));
@@ -72,9 +79,15 @@ export default function SubmissaoDetailPage({
         };
         return updated;
       }
+      const originalLesson = submission?.originalData.lessons.find(
+        (l) => l.lessonNumber === lessonNumber
+      );
+      const title = originalLesson?.title ?? submission?.originalData.lessons.find(
+        (l) => l.lessonNumber === lessonNumber
+      )?.title;
       return [
         ...prev,
-        { lessonNumber, exercises: [exercise] },
+        { lessonNumber, title, exercises: [exercise] },
       ].sort((a, b) => a.lessonNumber - b.lessonNumber);
     });
   }

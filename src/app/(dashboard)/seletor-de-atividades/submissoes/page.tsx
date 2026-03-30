@@ -82,29 +82,24 @@ export default function SubmissoesPage() {
           {submissions.map((s) => (
             <div
               key={s.id}
-              className="flex items-center gap-2 bg-card rounded-xl border border-border hover:border-primary/30 transition-colors"
+              className="flex items-center gap-3 bg-card rounded-xl border border-border hover:border-primary/30 transition-colors px-5"
             >
               <Link
                 href={`/seletor-de-atividades/submissoes/${s.id}`}
-                className="flex flex-1 items-center justify-between px-5 py-4"
+                className="flex flex-1 flex-col gap-0.5 py-4"
               >
-                <div className="flex flex-col gap-0.5">
-                  <p className="text-sm font-medium text-foreground">
-                    {s.courseId}
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    {s.instructor.name} · {new Date(s.createdAt).toLocaleDateString("pt-BR")}
-                  </p>
-                </div>
-                <span
-                  className={`text-xs font-semibold px-2 py-1 rounded-full ${statusClass(s.status)}`}
-                >
-                  {statusLabel(s.status)}
-                </span>
+                <p className="text-sm font-medium text-foreground">{s.courseId}</p>
+                <p className="text-xs text-muted-foreground">
+                  {s.instructor.name} · {new Date(s.createdAt).toLocaleDateString("pt-BR")}
+                </p>
               </Link>
 
+              <span className={`text-xs font-semibold px-2 py-1 rounded-full shrink-0 ${statusClass(s.status)}`}>
+                {statusLabel(s.status)}
+              </span>
+
               {s.status === "pending" && confirmId === s.id ? (
-                <div className="flex items-center gap-1 pr-3 shrink-0">
+                <div className="flex items-center gap-1 shrink-0">
                   <button
                     onClick={() => handleDelete(s.id)}
                     disabled={deletingId === s.id}
@@ -122,13 +117,13 @@ export default function SubmissoesPage() {
               ) : s.status === "pending" ? (
                 <button
                   onClick={() => setConfirmId(s.id)}
-                  className="mr-3 shrink-0 text-muted-foreground/30 hover:text-destructive transition-colors text-lg leading-none"
+                  className="shrink-0 text-muted-foreground/30 hover:text-destructive transition-colors text-lg leading-none"
                   title="Excluir submissão"
                 >
                   ×
                 </button>
               ) : (
-                <div className="mr-3 w-5 shrink-0" />
+                <div className="w-5 shrink-0" />
               )}
             </div>
           ))}

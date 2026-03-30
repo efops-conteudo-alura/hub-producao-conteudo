@@ -38,27 +38,88 @@ export default function UploadPage() {
       .catch(() => {});
   }, []);
 
+  function normalizeNewFormat(parsed: Record<string, unknown>): Course {
+    type NewAlt = { body?: string; justification?: string; correct?: boolean };
+    type NewActivity = {
+      id?: string;
+      type?: string;
+      taskEnum?: string;
+      dataTag?: string;
+      title?: string;
+      body?: string;
+      opinion?: string;
+      alternatives?: NewAlt[];
+    };
+    type NewSection = { title?: string; activities?: NewActivity[] };
+
+    const sections = (parsed.sections as NewSection[]) ?? [];
+    const lessons = sections
+      .map((section, idx) => {
+        const activities = (section.activities ?? []).filter(
+          (a) => a.taskEnum !== "VIDEO" && a.type !== "VIDEO"
+        );
+        if (activities.length === 0) return null;
+        return {
+          lessonNumber: idx + 1,
+          title: section.title,
+          exercises: activities.map((a) => ({
+            id: a.id ?? crypto.randomUUID(),
+            title: a.title ?? "",
+            text: a.body ?? "",
+            kind: a.taskEnum ?? "",
+            dataTag: a.dataTag,
+            sampleAnswer: a.opinion,
+            alternatives: (a.alternatives ?? []).map((alt) => ({
+              text: alt.body ?? "",
+              correct: alt.correct ?? false,
+              opinion: alt.justification ?? "",
+            })),
+          })),
+        };
+      })
+      .filter((l): l is NonNullable<typeof l> => l !== null);
+
+    return { courseId: (parsed.courseId as string) ?? "", lessons };
+  }
+
   function handleFile(content: string) {
     setError(null);
     try {
-      const parsed: Course = JSON.parse(content);
-      if (!parsed.courseId || !Array.isArray(parsed.lessons)) {
-        setError("O arquivo JSON não tem o formato esperado (courseId + lessons).");
+      const parsed: Record<string, unknown> = JSON.parse(content);
+
+      if (!parsed.courseId) {
+        setError("O arquivo JSON não tem o formato esperado (campo courseId ausente).");
         return;
       }
 
-      const courseWithIds: Course = {
-        ...parsed,
-        lessons: parsed.lessons.map((lesson) => ({
-          ...lesson,
-          exercises: lesson.exercises.map((ex) => ({
-            ...ex,
-            id: ex.id ?? crypto.randomUUID(),
-          })),
-        })),
-      };
+      let course: Course;
 
-      setCourse(courseWithIds);
+      if (Array.isArray(parsed.sections)) {
+        // Formato da plataforma Alura (sections/activities)
+        course = normalizeNewFormat(parsed);
+        if (course.lessons.length === 0) {
+          setError("Nenhuma atividade válida encontrada no arquivo (apenas vídeos ou seções vazias).");
+          return;
+        }
+      } else if (Array.isArray(parsed.lessons)) {
+        // Formato antigo (lessons/exercises)
+        const raw = parsed as unknown as Course;
+        course = {
+          ...raw,
+          lessons: raw.lessons.map((lesson) => ({
+            ...lesson,
+            exercises: lesson.exercises.map((ex) => ({
+              ...ex,
+              id: ex.id ?? crypto.randomUUID(),
+            })),
+          })),
+        };
+      } else {
+        setError("O arquivo JSON não tem o formato esperado (courseId + lessons ou courseId + sections).");
+        return;
+      }
+
+      setCourse(course);
       setStep(2);
     } catch {
       setError("Não foi possível ler o arquivo JSON.");

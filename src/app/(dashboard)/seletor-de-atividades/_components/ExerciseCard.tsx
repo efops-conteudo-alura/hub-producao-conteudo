@@ -1,6 +1,90 @@
 "use client";
 
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
+import { oneDark } from "react-syntax-highlighter/dist/esm/styles/prism";
 import type { Alternative, Exercise, Lesson } from "@/types/course";
+
+function Markdown({ children }: { children: string }) {
+  return (
+    <ReactMarkdown
+      remarkPlugins={[remarkGfm]}
+      components={{
+        p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
+        pre: ({ children }) => <>{children}</>,
+        code: ({ children, className }) => {
+          const language = className?.replace("language-", "");
+          if (language) {
+            return (
+              <SyntaxHighlighter
+                language={language}
+                style={oneDark}
+                customStyle={{ borderRadius: "0.5rem", fontSize: "0.75rem", margin: "4px 0" }}
+                wrapLongLines
+              >
+                {String(children).replace(/\n$/, "")}
+              </SyntaxHighlighter>
+            );
+          }
+          // Bloco sem linguagem especificada
+          if (String(children).includes("\n")) {
+            return (
+              <pre className="bg-[#282c34] text-[#abb2bf] rounded-lg px-3 py-2 text-xs font-mono whitespace-pre-wrap overflow-x-auto my-1 leading-relaxed">
+                <code>{children}</code>
+              </pre>
+            );
+          }
+          // Código inline
+          return (
+            <code className="bg-muted border border-border/40 rounded px-1 py-0.5 text-xs font-mono">
+              {children}
+            </code>
+          );
+        },
+        a: ({ href, children }) => (
+          <a href={href} target="_blank" rel="noopener noreferrer" className="text-primary underline underline-offset-2 hover:text-primary/80">
+            {children}
+          </a>
+        ),
+        ul: ({ children }) => <ul className="list-disc pl-4 my-1 space-y-0.5">{children}</ul>,
+        ol: ({ children }) => <ol className="list-decimal pl-4 my-1 space-y-0.5">{children}</ol>,
+        li: ({ children }) => <li className="text-sm">{children}</li>,
+        strong: ({ children }) => <strong className="font-semibold">{children}</strong>,
+        h1: ({ children }) => <h1 className="text-base font-bold mt-2 mb-1">{children}</h1>,
+        h2: ({ children }) => <h2 className="text-sm font-bold mt-2 mb-1">{children}</h2>,
+        h3: ({ children }) => <h3 className="text-base font-bold mt-2 mb-1">{children}</h3>,
+        blockquote: ({ children }) => (
+          <blockquote className="border-l-2 border-border pl-3 text-muted-foreground my-1">{children}</blockquote>
+        ),
+      }}
+    >
+      {children}
+    </ReactMarkdown>
+  );
+}
+
+function getActivityLabel(kind: string, dataTag?: string): string {
+  if (kind === "SINGLE_CHOICE") {
+    if (dataTag === "PRACTICE_CLASS_CONTENT") return "Única escolha sobre o conteúdo da aula";
+    return "Única escolha";
+  }
+  if (kind === "MULTIPLE_CHOICE") return "Múltipla escolha";
+  if (kind === "HQ_EXPLANATION") {
+    if (dataTag === "SETUP_EXPLANATION") return "Preparando o ambiente";
+    if (dataTag === "COMPLEMENTARY_INFORMATION") return "Para saber mais";
+    if (dataTag === "WHAT_WE_LEARNED") return "O que aprendemos?";
+    return "Explicação";
+  }
+  if (kind === "TEXT_CONTENT") {
+    if (dataTag === "DO_AFTER_ME") return "Faça como eu fiz na aula";
+    if (dataTag === "VARIATION") return "Analogamente";
+    if (dataTag === "CHALLENGE") return "Desafio";
+    if (dataTag === "SHOULD_NOT_EXIST") return "Criar outro projeto, análogo à aula";
+    return "Sem Resposta do Aluno";
+  }
+  return kind;
+}
 
 type Props = {
   lesson: Lesson;
@@ -45,6 +129,13 @@ export function ExerciseCard({
         ? "bg-muted/60 border-primary/30"
         : "bg-muted/30 border-border"
     }`}>
+      {/* Badge de tipo de atividade */}
+      {exercise.kind && (
+        <span className="text-xs font-medium text-muted-foreground/80 bg-muted border border-border/60 rounded px-2 py-0.5 self-start">
+          {getActivityLabel(exercise.kind, exercise.dataTag)}
+        </span>
+      )}
+
       {/* Título e enunciado — modo seleção */}
       {selectable && (
         <label className="flex items-start gap-3 cursor-pointer">
@@ -56,7 +147,9 @@ export function ExerciseCard({
           />
           <div className="flex-1 flex flex-col gap-1">
             <p className="font-semibold text-foreground">{exercise.title}</p>
-            <p className="text-sm text-foreground/70">{exercise.text}</p>
+            <div className="text-sm text-foreground/70">
+              <Markdown>{exercise.text}</Markdown>
+            </div>
           </div>
         </label>
       )}
@@ -66,7 +159,7 @@ export function ExerciseCard({
         <div className="flex flex-col gap-2">
           <label className="text-xs text-muted-foreground uppercase tracking-wide">Título</label>
           <textarea
-            rows={1}
+            rows={3}
             value={exercise.title}
             onChange={(e) =>
               onExerciseChange?.(lesson.lessonNumber, exercise.id, { title: e.target.value })
@@ -75,7 +168,7 @@ export function ExerciseCard({
           />
           <label className="text-xs text-muted-foreground uppercase tracking-wide">Enunciado</label>
           <textarea
-            rows={3}
+            rows={9}
             value={exercise.text}
             onChange={(e) =>
               onExerciseChange?.(lesson.lessonNumber, exercise.id, { text: e.target.value })
@@ -95,11 +188,13 @@ export function ExerciseCard({
             {exercise.title}
           </p>
           {originalExercise && originalExercise.text !== exercise.text && (
-            <p className="text-xs line-through text-destructive/70 mt-1">{originalExercise.text}</p>
+            <div className="text-xs line-through text-destructive/70 mt-1">
+              <Markdown>{originalExercise.text}</Markdown>
+            </div>
           )}
-          <p className={`text-sm mt-1 ${originalExercise && originalExercise.text !== exercise.text ? "text-green-600 dark:text-green-400" : "text-foreground/70"}`}>
-            {exercise.text}
-          </p>
+          <div className={`text-sm mt-1 ${originalExercise && originalExercise.text !== exercise.text ? "text-green-600 dark:text-green-400" : "text-foreground/70"}`}>
+            <Markdown>{exercise.text}</Markdown>
+          </div>
         </div>
       )}
 
@@ -167,9 +262,13 @@ export function ExerciseCard({
                 <span className="shrink-0 mt-0.5">{alt.correct ? "✓" : "○"}</span>
                 <div className="flex-1">
                   {textChanged && (
-                    <p className="text-xs line-through text-destructive/70">{origAlt!.text}</p>
+                    <div className="text-xs line-through text-destructive/70">
+                      <Markdown>{origAlt!.text}</Markdown>
+                    </div>
                   )}
-                  <span className={textChanged ? "text-green-600 dark:text-green-400" : ""}>{alt.text}</span>
+                  <div className={textChanged ? "text-green-600 dark:text-green-400" : ""}>
+                    <Markdown>{alt.text}</Markdown>
+                  </div>
                   {correctChanged && (
                     <span className="ml-2 text-xs text-yellow-500">
                       {alt.correct
@@ -194,6 +293,40 @@ export function ExerciseCard({
           );
         })}
       </div>
+
+      {/* Resposta de exemplo (sampleAnswer) — atividades TEXT_CONTENT */}
+      {exercise.sampleAnswer !== undefined && (
+        <div className="flex flex-col gap-1">
+          <label className="text-xs text-muted-foreground uppercase tracking-wide">Resposta de exemplo</label>
+          {showEditableInputs ? (
+            <textarea
+              rows={9}
+              value={exercise.sampleAnswer}
+              onChange={(e) =>
+                onExerciseChange?.(lesson.lessonNumber, exercise.id, { sampleAnswer: e.target.value })
+              }
+              className="w-full rounded-lg bg-background border border-border px-3 py-2 text-sm text-foreground/70 focus:outline-none focus:border-primary resize-none"
+            />
+          ) : (
+            (() => {
+              const origSample = originalExercise?.sampleAnswer;
+              const changed = origSample !== undefined && origSample !== exercise.sampleAnswer;
+              return (
+                <div className="flex flex-col gap-0.5">
+                  {changed && (
+                    <div className="text-xs line-through text-destructive/70">
+                      <Markdown>{origSample!}</Markdown>
+                    </div>
+                  )}
+                  <div className={`text-sm text-foreground/70 bg-muted/40 rounded-lg px-3 py-2 border border-border/50 ${changed ? "text-green-600 dark:text-green-400" : ""}`}>
+                    <Markdown>{exercise.sampleAnswer!}</Markdown>
+                  </div>
+                </div>
+              );
+            })()
+          )}
+        </div>
+      )}
 
       {/* Comentário — editável (instrutor em edição) */}
       {onCommentChange !== undefined && (

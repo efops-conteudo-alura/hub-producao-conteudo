@@ -49,6 +49,9 @@ export function LessonAccordion({
       >
         <span className="font-heading font-bold text-primary">
           Aula {lesson.lessonNumber}
+          {lesson.title && (
+            <span className="font-normal text-muted-foreground"> · {lesson.title}</span>
+          )}
         </span>
         <span className="text-muted-foreground text-lg">{open ? "▲" : "▼"}</span>
       </button>

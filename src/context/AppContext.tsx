@@ -50,8 +50,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
           } else {
             return [
               ...prev,
-              { lessonNumber: lesson.lessonNumber, exercises: [updatedExercise] },
-            ];
+              { lessonNumber: lesson.lessonNumber, title: lesson.title, exercises: [updatedExercise] },
+            ].sort((a, b) => a.lessonNumber - b.lessonNumber);
           }
         } else {
           if (lessonIndex === -1) return prev;
