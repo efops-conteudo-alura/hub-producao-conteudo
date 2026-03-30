@@ -3,7 +3,7 @@
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
-import { oneDark } from "react-syntax-highlighter/dist/esm/styles/prism";
+import { oneDark } from "react-syntax-highlighter/dist/cjs/styles/prism";
 import type { Alternative, Exercise, Lesson } from "@/types/course";
 
 function Markdown({ children }: { children: string }) {
@@ -43,7 +43,7 @@ function Markdown({ children }: { children: string }) {
           );
         },
         a: ({ href, children }) => (
-          <a href={href} target="_blank" rel="noopener noreferrer" className="text-primary underline underline-offset-2 hover:text-primary/80">
+          <a href={href} target="_blank" rel="noopener noreferrer" className="text-blue-400 underline underline-offset-2 hover:text-blue-300">
             {children}
           </a>
         ),
@@ -230,12 +230,12 @@ export function ExerciseCard({
                     }
                     className={`flex-1 rounded bg-background border px-2 py-1 text-sm focus:outline-none focus:border-primary ${
                       alt.correct
-                        ? "border-primary/40 text-primary"
+                        ? "border-blue-400/40 text-blue-400"
                         : "border-border text-foreground/70"
                     }`}
                   />
                   {alt.correct && (
-                    <span className="text-xs font-semibold text-primary shrink-0">correta</span>
+                    <span className="text-xs font-semibold text-blue-400 shrink-0">correta</span>
                   )}
                 </div>
                 <input
@@ -255,7 +255,7 @@ export function ExerciseCard({
             <div
               key={i}
               className={`flex flex-col gap-0.5 text-sm py-1 px-2 rounded-lg ${
-                alt.correct ? "bg-primary/10 text-primary" : "text-foreground/60"
+                alt.correct ? "bg-blue-400/10 text-blue-400" : "text-foreground/60"
               }`}
             >
               <div className="flex items-start gap-2">
@@ -278,7 +278,7 @@ export function ExerciseCard({
                   )}
                 </div>
                 {alt.correct && (
-                  <span className="ml-auto text-xs font-semibold text-primary shrink-0">
+                  <span className="ml-auto text-xs font-semibold text-blue-400 shrink-0">
                     correta
                   </span>
                 )}
@@ -350,7 +350,7 @@ export function ExerciseCard({
         <>
           {originalExercise && !originalExercise.comment && exercise.comment && (
             <div className="flex flex-col gap-1">
-              <label className="text-xs text-primary/70">Comentário adicionado pelo instrutor</label>
+              <label className="text-xs text-blue-400/70">Comentário adicionado pelo instrutor</label>
               <p className="text-sm text-foreground/70 bg-primary/5 rounded-lg px-3 py-2 border border-primary/20">
                 {exercise.comment}
               </p>

@@ -117,7 +117,7 @@ export default function SubmissoesPage() {
               ) : s.status === "pending" ? (
                 <button
                   onClick={() => setConfirmId(s.id)}
-                  className="shrink-0 text-muted-foreground/30 hover:text-destructive transition-colors text-lg leading-none"
+                  className="w-5 shrink-0 text-center text-muted-foreground/30 hover:text-destructive transition-colors text-lg leading-none"
                   title="Excluir submissão"
                 >
                   ×

@@ -47,7 +47,7 @@ export function LessonAccordion({
         onClick={() => setOpen(!open)}
         className="w-full flex items-center justify-between px-5 py-4 bg-card hover:bg-muted/50 transition-colors text-left"
       >
-        <span className="font-heading font-bold text-primary">
+        <span className="font-heading font-bold text-foreground">
           Aula {lesson.lessonNumber}
           {lesson.title && (
             <span className="font-normal text-muted-foreground"> · {lesson.title}</span>
