@@ -3,6 +3,16 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 
 export default function PrimeiroAcessoPage() {
   const router = useRouter();
@@ -46,99 +56,75 @@ export default function PrimeiroAcessoPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-muted/50 px-6">
-    <div className="w-full max-w-md bg-card rounded-2xl border border-border p-8 flex flex-col gap-6">
-      <div className="flex flex-col items-center gap-1 text-center">
-        <h1 className="font-heading text-2xl font-bold">
-          Criar conta
-        </h1>
-        <p className="text-muted-foreground text-sm">
-          Preencha os dados para ativar o seu acesso aos apps de conteúdo
-        </p>
-        <p className="text-muted-foreground/60 text-xs mt-1">
-          Se você já tem conta no Hub EfOps ou no Seletor de Atividades, não precisa criar outra — vá direto para o{" "}
-          <a href="/login" className="underline hover:text-foreground">login</a>{" "}
-          e use o mesmo email e senha.
-        </p>
-      </div>
-
-      <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-        <div className="flex flex-col gap-1">
-          <label htmlFor="name" className="text-sm text-foreground/70">
-            Nome completo
-          </label>
-          <input
-            id="name"
-            name="name"
-            type="text"
-            placeholder="Seu nome"
-            required
-            className="rounded-lg bg-background border border-border px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground/40 focus:outline-none focus:border-primary"
-          />
-        </div>
-
-        <div className="flex flex-col gap-1">
-          <label htmlFor="email" className="text-sm text-foreground/70">
-            Email Alura
-          </label>
-          <input
-            id="email"
-            name="email"
-            type="email"
-            placeholder="seu@alura.com.br"
-            required
-            className="rounded-lg bg-background border border-border px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground/40 focus:outline-none focus:border-primary"
-          />
-        </div>
-
-        <div className="flex flex-col gap-1">
-          <label htmlFor="password" className="text-sm text-foreground/70">
-            Senha
-          </label>
-          <input
-            id="password"
-            name="password"
-            type="password"
-            placeholder="Mínimo 8 caracteres"
-            required
-            className="rounded-lg bg-background border border-border px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground/40 focus:outline-none focus:border-primary"
-          />
-        </div>
-
-        <div className="flex flex-col gap-1">
-          <label htmlFor="confirm" className="text-sm text-foreground/70">
-            Confirmar senha
-          </label>
-          <input
-            id="confirm"
-            name="confirm"
-            type="password"
-            placeholder="••••••••"
-            required
-            className="rounded-lg bg-background border border-border px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground/40 focus:outline-none focus:border-primary"
-          />
-        </div>
-
-        {error && (
-          <p className="text-destructive text-sm bg-destructive/10 px-3 py-2 rounded-lg">{error}</p>
-        )}
-
-        <button
-          type="submit"
-          disabled={loading}
-          className="bg-primary hover:bg-primary/80 disabled:opacity-50 text-primary-foreground font-bold py-3 rounded-xl transition-colors"
-        >
-          {loading ? "Criando conta..." : "Criar conta"}
-        </button>
-
-        <p className="text-center text-sm text-muted-foreground">
-          Já tem conta?{" "}
-          <Link href="/login" className="underline hover:text-foreground">
-            Entrar
-          </Link>
-        </p>
-      </form>
-    </div>
+    <div className="min-h-screen flex items-center justify-center bg-muted/50">
+      <Card className="w-full max-w-md">
+        <CardHeader className="text-center">
+          <CardTitle className="text-2xl font-light">Criar conta</CardTitle>
+          <CardDescription>
+            Preencha os dados para ativar o seu acesso aos apps de conteúdo
+          </CardDescription>
+          <p className="text-xs text-muted-foreground/70 mt-1">
+            Se você já tem conta no Hub EfOps ou no Seletor de Atividades, não precisa criar outra —{" "}
+            vá direto para o{" "}
+            <Link href="/login" className="underline hover:text-foreground">login</Link>{" "}
+            e use o mesmo email e senha.
+          </p>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="name">Nome completo</Label>
+              <Input
+                id="name"
+                name="name"
+                type="text"
+                placeholder="Seu nome"
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="email">Email Alura</Label>
+              <Input
+                id="email"
+                name="email"
+                type="email"
+                placeholder="seu@alura.com.br"
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="password">Senha</Label>
+              <Input
+                id="password"
+                name="password"
+                type="password"
+                placeholder="Mínimo 8 caracteres"
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="confirm">Confirmar senha</Label>
+              <Input
+                id="confirm"
+                name="confirm"
+                type="password"
+                placeholder="••••••••"
+                required
+              />
+            </div>
+            {error && <p className="text-sm text-destructive">{error}</p>}
+            <Button type="submit" className="w-full" disabled={loading}>
+              {loading ? "Criando conta..." : "Criar conta"}
+            </Button>
+            <p className="text-center text-sm text-muted-foreground">
+              Já tem conta?{" "}
+              <Link href="/login" className="underline">
+                Entrar
+              </Link>
+            </p>
+          </form>
+        </CardContent>
+      </Card>
     </div>
   );
 }

@@ -54,7 +54,7 @@ function LoginForm() {
     <div className="min-h-screen flex items-center justify-center bg-muted/50">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
-          <CardTitle className="text-2xl">Hub de Produção de Conteúdo</CardTitle>
+          <CardTitle className="text-2xl font-light">Hub de Produção de Conteúdo</CardTitle>
           <CardDescription>
             Entre com suas credenciais para continuar
           </CardDescription>
