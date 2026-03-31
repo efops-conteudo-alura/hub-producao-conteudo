@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { GuideModal } from "../_components/GuideModal";
 
 interface Submission {
   id: string;
@@ -60,9 +61,12 @@ export default function SubmissoesPage() {
   return (
     <main className="flex flex-1 flex-col px-6 py-10 max-w-3xl mx-auto w-full gap-6">
       <div className="flex items-center justify-between">
-        <h1 className="hub-page-title">
-          Submissões
-        </h1>
+        <div className="flex items-center gap-3">
+          <h1 className="hub-page-title">
+            Submissões
+          </h1>
+          <GuideModal role="coordinator" />
+        </div>
         <button
           onClick={() => router.push("/seletor-de-atividades/upload")}
           className="bg-primary hover:bg-primary/80 text-primary-foreground font-bold px-5 py-2.5 rounded-xl transition-colors text-sm"

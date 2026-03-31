@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { GuideModal } from "../_components/GuideModal";
 
 interface Task {
   id: string;
@@ -42,9 +43,12 @@ export default function TarefasPage() {
 
   return (
     <main className="flex flex-1 flex-col px-6 py-10 max-w-3xl mx-auto w-full gap-6">
-      <h1 className="hub-page-title">
-        Minhas tarefas
-      </h1>
+      <div className="flex items-center gap-3">
+        <h1 className="hub-page-title">
+          Minhas tarefas
+        </h1>
+        <GuideModal role="instructor" />
+      </div>
 
       {loading && (
         <p className="text-muted-foreground text-sm">Carregando...</p>
