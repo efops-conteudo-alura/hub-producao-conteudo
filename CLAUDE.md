@@ -6,7 +6,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Hub para coordenadores de conteúdo da Alura. Centraliza ferramentas de IA para produção de conteúdo e o módulo Seletor de Atividades (migrado do select_activity).
 
-**Banco de dados compartilhado com o hub-efops** (mesmo PostgreSQL/Neon). A autenticação usa o mesmo sistema de usuários — acesso controlado pela AppRole `hub-producao-conteudo`.
+> **Este app faz parte de um ecossistema multi-app que compartilha um único banco PostgreSQL (Neon) com o hub-efops.**  
+> O **hub-efops é o centralizador de usuários, acessos e migrações**. Leia a seção "Ecossistema de Apps" abaixo antes de qualquer mudança em autenticação, cadastro ou schema.
 
 ---
 
@@ -100,6 +101,36 @@ prisma/
 
 ---
 
+## Ecossistema de Apps
+
+Este app é parte de um ecossistema que compartilha o mesmo banco. O **hub-efops** é o centralizador — lá ficam:
+- A gestão da `AllowedEmail` (whitelist de quem pode se cadastrar)
+- As migrações do schema (nunca rodar `migrate` aqui)
+- A interface de admin de usuários e AppRoles
+
+### Apps no ecossistema
+
+| Identificador (app) | Projeto | Roles disponíveis |
+|---|---|---|
+| `hub-efops` | projeto-hub-efops | `ADMIN`, `USER` |
+| `hub-producao-conteudo` | este projeto | `ADMIN`, `USER` |
+| `select-activity` | (embutido neste projeto) | `ADMIN`, `COORDINATOR`, `INSTRUCTOR` |
+
+### AppRole — como o acesso é controlado
+
+Cada usuário tem zero ou mais `AppRole` no banco. Sem AppRole para um app = sem acesso. A rota `/api/seletor/auth/register` deste hub cria os AppRoles `hub-producao-conteudo:USER` e `select-activity:COORDINATOR` para novos usuários. Se o usuário já existe (cadastrado pelo hub-efops), os AppRoles faltantes são adicionados via upsert.
+
+### Como adicionar um novo app ao ecossistema
+
+1. Definir o identificador do app (ex: `"hub-novo-app"`)
+2. Atualizar `/api/seletor/auth/register` neste hub para criar o AppRole do novo app nos cadastros
+3. Atualizar `/api/auth/register` no hub-efops igualmente
+4. Implementar o `auth.ts` do novo app buscando AppRole pelo identificador escolhido
+5. No novo app: usar `npx prisma generate` (nunca `migrate`)
+6. Atualizar a tabela "Apps no ecossistema" no CLAUDE.md de ambos os hubs existentes
+
+---
+
 ## Autenticação e roles
 
 ### Hub de Produção de Conteúdo
@@ -125,7 +156,7 @@ prisma/
 
 ### Acesso ao seletor para coordenadores sem conta
 1. Coordenador acessa `/primeiro-acesso` → cria conta → recebe `hub-producao-conteudo:USER` + `select-activity:COORDINATOR`
-2. Se já tem conta mas sem senha → acessa `/criar-senha`
+2. Se já tem conta (cadastrada pelo hub-efops ou outro app) → o cadastro detecta o usuário existente e adiciona os AppRoles faltantes → redireciona para login
 
 ---
 
