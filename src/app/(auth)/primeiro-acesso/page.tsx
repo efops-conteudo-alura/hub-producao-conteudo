@@ -53,10 +53,12 @@ export default function PrimeiroAcessoPage() {
           Criar conta
         </h1>
         <p className="text-muted-foreground text-sm">
-          Primeiro acesso ao Seletor de Atividades
+          Preencha os dados para ativar o seu acesso aos apps de conteúdo
         </p>
         <p className="text-muted-foreground/60 text-xs mt-1">
-          Se você já tem conta no Hub Efops ou no Seletor de Atividades, use o mesmo email e senha.
+          Se você já tem conta no Hub EfOps ou no Seletor de Atividades, não precisa criar outra — vá direto para o{" "}
+          <a href="/login" className="underline hover:text-foreground">login</a>{" "}
+          e use o mesmo email e senha.
         </p>
       </div>
 

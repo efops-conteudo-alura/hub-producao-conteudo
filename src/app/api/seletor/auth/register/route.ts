@@ -30,10 +30,19 @@ export async function POST(req: NextRequest) {
 
   const existing = await prisma.user.findUnique({ where: { email: normalizedEmail } });
   if (existing) {
-    return NextResponse.json(
-      { error: "Já existe uma conta com este email. Entre pelo login." },
-      { status: 409 }
-    );
+    // Usuário já existe (criado pelo hub-efops ou select-activity):
+    // garante que tenha os AppRoles dos dois apps deste hub.
+    await prisma.appRole.upsert({
+      where: { userId_app: { userId: existing.id, app: "hub-producao-conteudo" } },
+      create: { userId: existing.id, app: "hub-producao-conteudo", role: "USER" },
+      update: {},
+    });
+    await prisma.appRole.upsert({
+      where: { userId_app: { userId: existing.id, app: "select-activity" } },
+      create: { userId: existing.id, app: "select-activity", role: "COORDINATOR" },
+      update: {},
+    });
+    return NextResponse.json({ success: true, existing: true });
   }
 
   const hashed = await bcrypt.hash(password, 12);

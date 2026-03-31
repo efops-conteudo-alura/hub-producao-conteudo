@@ -1,9 +1,11 @@
 "use client"
 
+import { useState } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { signOut, useSession } from "next-auth/react"
 import { Home, BookOpen, FileCheck, LogOut, GraduationCap, BookMarked, BarChart2, ListChecks } from "lucide-react"
+import { ProfileDialog } from "@/components/profile-dialog"
 
 const mainNavItems = [
   { href: "/home", label: "Início", icon: Home },
@@ -42,9 +44,12 @@ const seletorItem = { href: "/seletor-de-atividades", label: "Seletor de Ativ.",
 
 export function Sidebar() {
   const { data: session } = useSession()
+  const [profileOpen, setProfileOpen] = useState(false)
   const userName = session?.user?.name || session?.user?.email || ""
   const isInstructor =
     session?.user?.selectorRole === "INSTRUCTOR" && !session?.user?.role
+  // Instrutores fazem login sem senha — não podem editar credenciais por aqui
+  const canChangePassword = !isInstructor
 
   const visibleMainItems = isInstructor
     ? [seletorItem]
@@ -82,11 +87,17 @@ export function Sidebar() {
       {/* Usuário + Logout */}
       <div className="shrink-0 border-t border-sidebar-border px-2 py-3 flex flex-col gap-1">
         {userName && (
-          <div className="px-2 py-2 text-center">
-            <p className="text-[10px] text-muted-foreground leading-tight truncate" title={userName}>
+          <button
+            onClick={() => !isInstructor && setProfileOpen(true)}
+            className={`px-2 py-2 rounded-lg w-full text-center transition-colors ${
+              !isInstructor ? "hover:bg-muted/40 cursor-pointer" : "cursor-default"
+            }`}
+            title={!isInstructor ? "Editar perfil" : userName}
+          >
+            <p className="text-[10px] text-muted-foreground leading-tight truncate">
               {userName}
             </p>
-          </div>
+          </button>
         )}
         <button
           onClick={() => signOut({ callbackUrl: "/login" })}
@@ -96,6 +107,15 @@ export function Sidebar() {
           <span className="text-[11px] font-semibold leading-none">Sair</span>
         </button>
       </div>
+
+      {session?.user && (
+        <ProfileDialog
+          open={profileOpen}
+          onOpenChange={setProfileOpen}
+          user={{ name: session.user.name, email: session.user.email }}
+          canChangePassword={canChangePassword}
+        />
+      )}
     </aside>
   )
 }
