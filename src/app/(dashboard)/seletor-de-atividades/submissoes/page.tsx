@@ -60,19 +60,28 @@ export default function SubmissoesPage() {
 
   return (
     <main className="flex flex-1 flex-col px-6 py-10 max-w-3xl mx-auto w-full gap-6">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <h1 className="hub-page-title">
-            Submissões
-          </h1>
-          <GuideModal role="coordinator" />
+      <div className="flex items-start justify-between">
+        <div className="flex flex-col gap-0.5">
+          <div className="flex items-center gap-3">
+            <h1 className="hub-page-title">Seletor de atividades</h1>
+            <GuideModal role="coordinator" />
+          </div>
+          <p className="text-muted-foreground text-sm">
+            Envie cursos para instrutores revisarem e exporte o JSON final para o admin.
+          </p>
         </div>
         <button
           onClick={() => router.push("/seletor-de-atividades/upload")}
-          className="bg-primary hover:bg-primary/80 text-primary-foreground font-bold px-5 py-2.5 rounded-xl transition-colors text-sm"
+          className="bg-primary hover:bg-primary/80 text-primary-foreground font-bold px-5 py-2.5 rounded-xl transition-colors text-sm shrink-0"
         >
           + Nova submissão
         </button>
+      </div>
+
+      <div className="flex items-center justify-between">
+        <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+          Submissões
+        </h2>
       </div>
 
       {loading && (
