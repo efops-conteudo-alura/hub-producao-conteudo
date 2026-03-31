@@ -77,6 +77,10 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Dados incompletos." }, { status: 400 });
   }
 
+  if (typeof instructorId !== "string") {
+    return NextResponse.json({ error: "instructorId inválido." }, { status: 400 });
+  }
+
   const courseId = String((originalData as { courseId?: unknown }).courseId ?? "");
 
   let instructorRole;
