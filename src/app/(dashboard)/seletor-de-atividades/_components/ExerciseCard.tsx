@@ -51,8 +51,8 @@ function Markdown({ children }: { children: string }) {
         ol: ({ children }) => <ol className="list-decimal pl-4 my-1 space-y-0.5">{children}</ol>,
         li: ({ children }) => <li className="text-sm">{children}</li>,
         strong: ({ children }) => <strong className="font-semibold">{children}</strong>,
-        h1: ({ children }) => <h1 className="text-base font-bold mt-2 mb-1">{children}</h1>,
-        h2: ({ children }) => <h2 className="text-sm font-bold mt-2 mb-1">{children}</h2>,
+        h1: ({ children }) => <h1 className="text-xl font-bold mt-2 mb-1">{children}</h1>,
+        h2: ({ children }) => <h2 className="text-lg font-bold mt-2 mb-1">{children}</h2>,
         h3: ({ children }) => <h3 className="text-base font-bold mt-2 mb-1">{children}</h3>,
         blockquote: ({ children }) => (
           <blockquote className="border-l-2 border-border pl-3 text-muted-foreground my-1">{children}</blockquote>
@@ -122,6 +122,8 @@ export function ExerciseCard({
   originalExercise,
 }: Props) {
   const showEditableInputs = editable || isEditing;
+  const origSample = originalExercise?.sampleAnswer;
+  const sampleChanged = origSample !== undefined && origSample !== exercise.sampleAnswer;
 
   return (
     <div className={`rounded-xl border p-4 flex flex-col gap-3 ${
@@ -207,6 +209,7 @@ export function ExerciseCard({
           const correctChanged = origAlt && origAlt.correct !== alt.correct;
 
           if (showEditableInputs) {
+            const isMultiple = exercise.kind === "MULTIPLE_CHOICE";
             return (
               <div
                 key={i}
@@ -214,11 +217,16 @@ export function ExerciseCard({
               >
                 <div className="flex items-center gap-2">
                   <input
-                    type="radio"
-                    name={`correct-${exercise.id}`}
+                    type={isMultiple ? "checkbox" : "radio"}
+                    name={isMultiple ? undefined : `correct-${exercise.id}`}
                     checked={alt.correct}
                     onChange={() =>
-                      onAlternativeChange?.(lesson.lessonNumber, exercise.id, i, { correct: true })
+                      onAlternativeChange?.(
+                        lesson.lessonNumber,
+                        exercise.id,
+                        i,
+                        { correct: isMultiple ? !alt.correct : true }
+                      )
                     }
                     className="shrink-0"
                   />
@@ -308,22 +316,16 @@ export function ExerciseCard({
               className="w-full rounded-lg bg-background border border-border px-3 py-2 text-sm text-foreground/70 focus:outline-none focus:border-primary resize-none"
             />
           ) : (
-            (() => {
-              const origSample = originalExercise?.sampleAnswer;
-              const changed = origSample !== undefined && origSample !== exercise.sampleAnswer;
-              return (
-                <div className="flex flex-col gap-0.5">
-                  {changed && (
-                    <div className="text-xs line-through text-destructive/70">
-                      <Markdown>{origSample!}</Markdown>
-                    </div>
-                  )}
-                  <div className={`text-sm text-foreground/70 bg-muted/40 rounded-lg px-3 py-2 border border-border/50 ${changed ? "text-green-600 dark:text-green-400" : ""}`}>
-                    <Markdown>{exercise.sampleAnswer!}</Markdown>
-                  </div>
+            <div className="flex flex-col gap-0.5">
+              {sampleChanged && (
+                <div className="text-xs line-through text-destructive/70">
+                  <Markdown>{origSample!}</Markdown>
                 </div>
-              );
-            })()
+              )}
+              <div className={`text-sm text-foreground/70 bg-muted/40 rounded-lg px-3 py-2 border border-border/50 ${sampleChanged ? "text-green-600 dark:text-green-400" : ""}`}>
+                <Markdown>{exercise.sampleAnswer!}</Markdown>
+              </div>
+            </div>
           )}
         </div>
       )}

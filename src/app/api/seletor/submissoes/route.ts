@@ -65,7 +65,13 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Apenas coordenadores podem criar tarefas." }, { status: 403 });
   }
 
-  const { instructorId, originalData } = await req.json();
+  let body: { instructorId?: unknown; originalData?: unknown };
+  try {
+    body = await req.json();
+  } catch {
+    return NextResponse.json({ error: "Body inválido." }, { status: 400 });
+  }
+  const { instructorId, originalData } = body;
 
   if (!instructorId || !originalData) {
     return NextResponse.json({ error: "Dados incompletos." }, { status: 400 });

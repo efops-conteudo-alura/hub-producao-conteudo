@@ -12,7 +12,7 @@ interface SubmissionDetail {
   status: string;
   instructor: { name: string; email: string };
   originalData: Course;
-  submittedData: { courseId: string; lessons: Lesson[] };
+  submittedData: { courseId?: string; lessons?: Lesson[] };
   createdAt: string;
 }
 
@@ -30,6 +30,7 @@ export default function SubmissaoDetailPage({
 
   const [editedLessons, setEditedLessons] = useState<Lesson[]>([]);
   const [editingExerciseId, setEditingExerciseId] = useState<string | null>(null);
+  const [exportError, setExportError] = useState<string | null>(null);
 
   useEffect(() => {
     fetch(`/api/seletor/submissoes/${id}`)
@@ -82,12 +83,9 @@ export default function SubmissaoDetailPage({
       const originalLesson = submission?.originalData.lessons.find(
         (l) => l.lessonNumber === lessonNumber
       );
-      const title = originalLesson?.title ?? submission?.originalData.lessons.find(
-        (l) => l.lessonNumber === lessonNumber
-      )?.title;
       return [
         ...prev,
-        { lessonNumber, title, exercises: [exercise] },
+        { lessonNumber, title: originalLesson?.title, exercises: [exercise] },
       ].sort((a, b) => a.lessonNumber - b.lessonNumber);
     });
   }
@@ -120,7 +118,7 @@ export default function SubmissaoDetailPage({
           exercises: lesson.exercises.map((ex) => {
             if (ex.id !== exerciseId) return ex;
             const updatedAlternatives = ex.alternatives.map((alt, i) => {
-              if (changes.correct === true && i !== altIndex) return { ...alt, correct: false };
+              if (changes.correct === true && ex.kind !== "MULTIPLE_CHOICE" && i !== altIndex) return { ...alt, correct: false };
               if (i === altIndex) return { ...alt, ...changes };
               return alt;
             });
@@ -134,6 +132,7 @@ export default function SubmissaoDetailPage({
   async function handleExport() {
     if (!submission) return;
     setExporting(true);
+    setExportError(null);
 
     try {
       const res = await fetch(`/api/seletor/submissoes/${id}`, {
@@ -147,7 +146,7 @@ export default function SubmissaoDetailPage({
 
       if (!res.ok) {
         const json = await res.json().catch(() => ({}));
-        alert(json.error ?? "Erro ao salvar exportação. Tente novamente.");
+        setExportError(json.error ?? "Erro ao salvar exportação. Tente novamente.");
         return;
       }
 
@@ -157,7 +156,7 @@ export default function SubmissaoDetailPage({
       );
       setSubmission((prev) => (prev ? { ...prev, status: "exported" } : prev));
     } catch {
-      alert("Erro de conexão. Verifique sua internet e tente novamente.");
+      setExportError("Erro de conexão. Verifique sua internet e tente novamente.");
     } finally {
       setExporting(false);
     }
@@ -300,7 +299,12 @@ export default function SubmissaoDetailPage({
       </main>
 
       <footer className="sticky bottom-0 bg-card border-t border-border px-6 py-4">
-        <div className="max-w-3xl mx-auto flex justify-end">
+        <div className="max-w-3xl mx-auto flex flex-col items-end gap-2">
+          {exportError && (
+            <p className="text-destructive text-sm bg-destructive/10 px-4 py-2 rounded-lg w-full text-center">
+              {exportError}
+            </p>
+          )}
           <button
             onClick={handleExport}
             disabled={exporting || editedLessons.length === 0}

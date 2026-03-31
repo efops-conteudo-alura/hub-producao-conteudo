@@ -121,8 +121,12 @@ export default function UploadPage() {
 
       setCourse(course);
       setStep(2);
-    } catch {
-      setError("Não foi possível ler o arquivo JSON.");
+    } catch (e) {
+      if (e instanceof SyntaxError) {
+        setError(`Arquivo JSON inválido — ${e.message}`);
+      } else {
+        setError("Não foi possível ler o arquivo JSON.");
+      }
     }
   }
 

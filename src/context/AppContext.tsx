@@ -117,7 +117,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
             exercises: lesson.exercises.map((ex) => {
               if (ex.id !== exerciseId) return ex;
               const updatedAlternatives = ex.alternatives.map((alt, i) => {
-                if (changes.correct === true && i !== altIndex) {
+                if (changes.correct === true && ex.kind !== "MULTIPLE_CHOICE" && i !== altIndex) {
                   return { ...alt, correct: false };
                 }
                 if (i === altIndex) return { ...alt, ...changes };

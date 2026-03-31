@@ -32,6 +32,7 @@ export default function SubmissoesPage() {
   const [loading, setLoading] = useState(true);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [confirmId, setConfirmId] = useState<string | null>(null);
+  const [fetchError, setFetchError] = useState<string | null>(null);
 
   useEffect(() => {
     fetch("/api/seletor/submissoes")
@@ -40,7 +41,10 @@ export default function SubmissoesPage() {
         setSubmissions(Array.isArray(data) ? data : []);
         setLoading(false);
       })
-      .catch(() => setLoading(false));
+      .catch(() => {
+        setLoading(false);
+        setFetchError("Erro ao carregar submissões. Verifique sua conexão e recarregue a página.");
+      });
   }, []);
 
   async function handleDelete(id: string) {
@@ -71,7 +75,13 @@ export default function SubmissoesPage() {
         <p className="text-muted-foreground text-sm">Carregando...</p>
       )}
 
-      {!loading && submissions.length === 0 && (
+      {!loading && fetchError && (
+        <p className="text-destructive text-sm bg-destructive/10 px-4 py-3 rounded-lg">
+          {fetchError}
+        </p>
+      )}
+
+      {!loading && !fetchError && submissions.length === 0 && (
         <p className="text-muted-foreground text-sm">
           Nenhuma tarefa criada ainda.
         </p>
