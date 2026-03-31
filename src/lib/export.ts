@@ -1,15 +1,28 @@
 import type { Course, Lesson } from "@/types/course";
 
-export function exportSelectedCourse(
-  course: Course,
-  selectedLessons: Lesson[]
-): void {
-  const exportData: Course = {
+export function exportSelectedCourse(course: Course, selectedLessons: Lesson[]): void {
+  const exportData = {
     courseId: course.courseId,
-    lessons: selectedLessons.map((lesson) => ({
-      lessonNumber: lesson.lessonNumber,
-      exercises: lesson.exercises.map(({ isSelected: _, ...rest }) => rest),
-    })),
+    sections: selectedLessons.map((lesson) => {
+      const section: Record<string, unknown> = {};
+      if (lesson.title) section.title = lesson.title;
+      section.activities = lesson.exercises.map(
+        ({ isSelected: _1, id: _2, comment: _3, text, kind, dataTag, title, sampleAnswer, alternatives }) => {
+          const activity: Record<string, unknown> = { taskEnum: kind };
+          if (dataTag !== undefined) activity.dataTag = dataTag;
+          activity.title = title;
+          activity.body = text;
+          if (sampleAnswer !== undefined) activity.opinion = sampleAnswer;
+          activity.alternatives = alternatives.map(({ text: body, opinion: justification, correct }) => ({
+            body,
+            justification,
+            correct,
+          }));
+          return activity;
+        }
+      );
+      return section;
+    }),
   };
 
   const json = JSON.stringify(exportData, null, 2);
@@ -17,7 +30,7 @@ export function exportSelectedCourse(
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
-  a.download = `${course.courseId}-selected-lessons.json`;
+  a.download = `${course.courseId}-atividades.json`;
   a.click();
   URL.revokeObjectURL(url);
 }

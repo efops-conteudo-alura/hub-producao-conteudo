@@ -98,7 +98,7 @@ export default function SubmissoesPage() {
                 {statusLabel(s.status)}
               </span>
 
-              {s.status === "pending" && confirmId === s.id ? (
+              {confirmId === s.id ? (
                 <div className="flex items-center gap-1 shrink-0">
                   <button
                     onClick={() => handleDelete(s.id)}
@@ -114,7 +114,7 @@ export default function SubmissoesPage() {
                     Cancelar
                   </button>
                 </div>
-              ) : s.status === "pending" ? (
+              ) : (
                 <button
                   onClick={() => setConfirmId(s.id)}
                   className="w-5 shrink-0 text-center text-muted-foreground/30 hover:text-destructive transition-colors text-lg leading-none"
@@ -122,8 +122,6 @@ export default function SubmissoesPage() {
                 >
                   ×
                 </button>
-              ) : (
-                <div className="w-5 shrink-0" />
               )}
             </div>
           ))}

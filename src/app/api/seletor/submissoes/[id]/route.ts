@@ -143,13 +143,6 @@ export async function DELETE(
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  if (submission.status !== "pending") {
-    return NextResponse.json(
-      { error: "Apenas submissões pendentes podem ser excluídas." },
-      { status: 409 }
-    );
-  }
-
   try {
     await prisma.submission.delete({ where: { id } });
   } catch (e) {
