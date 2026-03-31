@@ -6,8 +6,9 @@ export default async function SeletorRootPage() {
   const selectorRole = session?.user?.selectorRole;
   const role = session?.user?.role;
 
-  // Instrutor vai para tarefas
-  if (selectorRole === "INSTRUCTOR" && !role) {
+  // Instrutor vai para tarefas (cobre role="INSTRUCTOR" legado e role="" novo)
+  const isInstructor = role === "INSTRUCTOR" || (selectorRole === "INSTRUCTOR" && !role);
+  if (isInstructor) {
     redirect("/seletor-de-atividades/tarefas");
   }
 

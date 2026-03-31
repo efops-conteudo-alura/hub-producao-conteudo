@@ -56,7 +56,8 @@ export function Sidebar({ user }: SidebarProps) {
   const [profileOpen, setProfileOpen] = useState(false)
 
   const isInstructor =
-    session?.user?.selectorRole === "INSTRUCTOR" && !session?.user?.role
+    session?.user?.role === "INSTRUCTOR" ||
+    (session?.user?.selectorRole === "INSTRUCTOR" && !session?.user?.role)
   // Instrutores fazem login sem senha — não podem editar credenciais por aqui
   const canChangePassword = !isInstructor
 
