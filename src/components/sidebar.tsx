@@ -5,7 +5,16 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { signOut, useSession } from "next-auth/react"
 import { Home, BookOpen, FileCheck, LogOut, GraduationCap, BookMarked, BarChart2, ListChecks } from "lucide-react"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { ProfileDialog } from "@/components/profile-dialog"
+
+interface SidebarProps {
+  user: {
+    name?: string | null
+    email?: string | null
+    image?: string | null
+  }
+}
 
 const mainNavItems = [
   { href: "/home", label: "Início", icon: Home },
@@ -42,19 +51,19 @@ function NavLink({ href, label, icon: Icon }: { href: string; label: string; ico
 
 const seletorItem = { href: "/seletor-de-atividades", label: "Seletor de Ativ.", icon: ListChecks }
 
-export function Sidebar() {
+export function Sidebar({ user }: SidebarProps) {
   const { data: session } = useSession()
   const [profileOpen, setProfileOpen] = useState(false)
-  const userName = session?.user?.name || session?.user?.email || ""
+
   const isInstructor =
     session?.user?.selectorRole === "INSTRUCTOR" && !session?.user?.role
   // Instrutores fazem login sem senha — não podem editar credenciais por aqui
   const canChangePassword = !isInstructor
 
-  const visibleMainItems = isInstructor
-    ? [seletorItem]
-    : mainNavItems
+  const visibleMainItems = isInstructor ? [seletorItem] : mainNavItems
   const visibleBottomItems = isInstructor ? [] : bottomNavItems
+
+  const initials = (user.name || user.email || "U")[0]?.toUpperCase()
 
   return (
     <aside className="flex flex-col w-[148px] shrink-0 border-r border-sidebar-border bg-sidebar h-screen sticky top-0">
@@ -85,20 +94,21 @@ export function Sidebar() {
       )}
 
       {/* Usuário + Logout */}
-      <div className="shrink-0 border-t border-sidebar-border px-2 py-3 flex flex-col gap-1">
-        {userName && (
-          <button
-            onClick={() => !isInstructor && setProfileOpen(true)}
-            className={`px-2 py-2 rounded-lg w-full text-center transition-colors ${
-              !isInstructor ? "hover:bg-muted/40 cursor-pointer" : "cursor-default"
-            }`}
-            title={!isInstructor ? "Editar perfil" : userName}
-          >
-            <p className="text-[10px] text-muted-foreground leading-tight truncate">
-              {userName}
-            </p>
-          </button>
-        )}
+      <div className="shrink-0 border-t border-sidebar-border px-2 py-3 flex flex-col items-center gap-1">
+        <button
+          onClick={() => !isInstructor && setProfileOpen(true)}
+          className={`rounded-full mb-1 transition-opacity ${
+            !isInstructor ? "hover:opacity-80 cursor-pointer" : "cursor-default"
+          }`}
+          title={!isInstructor ? "Editar perfil" : (user.name ?? "")}
+        >
+          <Avatar className="h-8 w-8">
+            {user.image && <AvatarImage src={user.image} alt={user.name ?? ""} />}
+            <AvatarFallback className="text-xs bg-sidebar-accent text-foreground">
+              {initials}
+            </AvatarFallback>
+          </Avatar>
+        </button>
         <button
           onClick={() => signOut({ callbackUrl: "/login" })}
           className="flex flex-col items-center justify-center gap-2 w-full py-4 px-2 rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted/40 transition-colors"
@@ -108,14 +118,12 @@ export function Sidebar() {
         </button>
       </div>
 
-      {session?.user && (
-        <ProfileDialog
-          open={profileOpen}
-          onOpenChange={setProfileOpen}
-          user={{ name: session.user.name, email: session.user.email }}
-          canChangePassword={canChangePassword}
-        />
-      )}
+      <ProfileDialog
+        open={profileOpen}
+        onOpenChange={setProfileOpen}
+        user={user}
+        canChangePassword={canChangePassword}
+      />
     </aside>
   )
 }

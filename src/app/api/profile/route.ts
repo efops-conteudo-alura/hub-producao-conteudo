@@ -8,14 +8,15 @@ export async function PUT(request: NextRequest) {
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const body = await request.json();
-  const { name, currentPassword, newPassword } = body;
+  const { name, image, currentPassword, newPassword } = body;
 
   const user = await prisma.user.findUnique({ where: { id: session.user.id } });
   if (!user) return NextResponse.json({ error: "Usuário não encontrado" }, { status: 404 });
 
-  const data: { name?: string; password?: string } = {};
+  const data: { name?: string; image?: string | null; password?: string } = {};
 
   if (name && String(name).trim()) data.name = String(name).trim();
+  if (image !== undefined) data.image = image || null;
 
   if (newPassword) {
     // Instrutores não têm senha — não podem alterar por aqui
@@ -38,7 +39,7 @@ export async function PUT(request: NextRequest) {
   const updated = await prisma.user.update({
     where: { id: session.user.id },
     data,
-    select: { name: true },
+    select: { name: true, image: true },
   });
 
   return NextResponse.json(updated);

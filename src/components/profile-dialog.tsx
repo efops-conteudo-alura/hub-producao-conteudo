@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import {
@@ -9,25 +9,43 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Camera } from "lucide-react";
 
 interface Props {
   open: boolean;
   onOpenChange: (v: boolean) => void;
-  user: { name?: string | null; email?: string | null };
+  user: { name?: string | null; email?: string | null; image?: string | null };
   canChangePassword: boolean;
 }
 
 export function ProfileDialog({ open, onOpenChange, user, canChangePassword }: Props) {
   const { update } = useSession();
   const router = useRouter();
+  const fileRef = useRef<HTMLInputElement>(null);
 
   const [name, setName] = useState(user.name ?? "");
+  const [image, setImage] = useState<string | null>(user.image ?? null);
+  const [imageError, setImageError] = useState("");
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
+
+  function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 1_000_000) {
+      setImageError("Imagem muito grande. Máximo 1MB.");
+      return;
+    }
+    setImageError("");
+    const reader = new FileReader();
+    reader.onload = (ev) => setImage(ev.target?.result as string);
+    reader.readAsDataURL(file);
+  }
 
   async function handleSave() {
     setError("");
@@ -40,7 +58,7 @@ export function ProfileDialog({ open, onOpenChange, user, canChangePassword }: P
 
     setLoading(true);
     try {
-      const body: Record<string, string> = { name };
+      const body: Record<string, string | null> = { name, image };
       if (canChangePassword && newPassword) {
         body.currentPassword = currentPassword;
         body.newPassword = newPassword;
@@ -68,6 +86,8 @@ export function ProfileDialog({ open, onOpenChange, user, canChangePassword }: P
     }
   }
 
+  const initials = (name || user.email || "U")[0]?.toUpperCase();
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
@@ -75,6 +95,41 @@ export function ProfileDialog({ open, onOpenChange, user, canChangePassword }: P
           <DialogTitle>Meu perfil</DialogTitle>
         </DialogHeader>
         <div className="space-y-5 mt-2">
+          {/* Avatar */}
+          <div className="flex flex-col items-center gap-2">
+            <div
+              className="relative group cursor-pointer"
+              onClick={() => fileRef.current?.click()}
+              title="Alterar foto"
+            >
+              <Avatar className="h-20 w-20">
+                {image && <AvatarImage src={image} alt={name} />}
+                <AvatarFallback className="text-2xl">{initials}</AvatarFallback>
+              </Avatar>
+              <div className="absolute inset-0 flex items-center justify-center rounded-full bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity">
+                <Camera size={20} className="text-white" />
+              </div>
+            </div>
+            <input
+              type="file"
+              accept="image/*"
+              className="hidden"
+              ref={fileRef}
+              onChange={handleFileChange}
+            />
+            {imageError && <p className="text-xs text-destructive">{imageError}</p>}
+            {image && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-xs text-muted-foreground h-6"
+                onClick={() => setImage(null)}
+              >
+                Remover foto
+              </Button>
+            )}
+          </div>
+
           {/* Nome */}
           <div className="space-y-1.5">
             <Label htmlFor="profile-name">Nome</Label>
@@ -91,7 +146,7 @@ export function ProfileDialog({ open, onOpenChange, user, canChangePassword }: P
             <p className="text-sm text-muted-foreground">{user.email}</p>
           </div>
 
-          {/* Alterar senha — admins e coordenadores */}
+          {/* Alterar senha */}
           {canChangePassword && (
             <div className="space-y-3 pt-2 border-t">
               <p className="text-sm font-medium">Alterar senha</p>
