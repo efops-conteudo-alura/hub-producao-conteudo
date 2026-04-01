@@ -13,7 +13,7 @@ export default async function RevisorConteudoPage() {
       <div className="mb-8">
         <h1 className="hub-page-title mb-4">Revisor de Conteúdo</h1>
         <p className="text-muted-foreground">
-          Ferramentas de auditoria e gestão da extensão Chrome.
+          Ferramentas para usar junto com a extensão Revisor de Conteúdo.
         </p>
       </div>
       <RevisorTabs isAdmin={isAdmin} />
