@@ -20,6 +20,7 @@ type Props = {
   onRestore?: (lessonNumber: number, exercise: Exercise) => void;
   onRemove?: (lessonNumber: number, exerciseId: string) => void;
   defaultOpen?: boolean;
+  copyable?: boolean;
 };
 
 export function LessonAccordion({
@@ -38,6 +39,7 @@ export function LessonAccordion({
   onRestore,
   onRemove,
   defaultOpen = false,
+  copyable = false,
 }: Props) {
   const [open, setOpen] = useState(defaultOpen);
 
@@ -78,6 +80,7 @@ export function LessonAccordion({
                 onExerciseChange={onExerciseChange}
                 onAlternativeChange={onAlternativeChange}
                 originalExercise={origExercise}
+                copyable={copyable}
               />
             );
           })}

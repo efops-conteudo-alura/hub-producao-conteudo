@@ -1,5 +1,7 @@
 "use client";
 
+import { useState } from "react";
+import { Copy, Check } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
@@ -64,6 +66,30 @@ function Markdown({ children }: { children: string }) {
   );
 }
 
+function CopyButton({ text }: { text: string }) {
+  const [copied, setCopied] = useState(false);
+
+  function handleCopy(e: React.MouseEvent) {
+    e.stopPropagation();
+    navigator.clipboard.writeText(text).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    }).catch(() => {});
+  }
+
+  return (
+    <button
+      onClick={handleCopy}
+      title="Copiar"
+      className="shrink-0 p-0.5 rounded text-muted-foreground/30 hover:text-muted-foreground transition-colors"
+    >
+      {copied
+        ? <Check size={12} className="text-green-500" />
+        : <Copy size={12} />}
+    </button>
+  );
+}
+
 function getActivityLabel(kind: string, dataTag?: string): string {
   if (kind === "SINGLE_CHOICE") {
     if (dataTag === "PRACTICE_CLASS_CONTENT") return "Única escolha sobre o conteúdo da aula";
@@ -102,6 +128,7 @@ type Props = {
   onExerciseChange?: (lessonNumber: number, exerciseId: string, changes: Partial<Exercise>) => void;
   onAlternativeChange?: (lessonNumber: number, exerciseId: string, altIndex: number, changes: Partial<Alternative>) => void;
   originalExercise?: Exercise;
+  copyable?: boolean;
 };
 
 export function ExerciseCard({
@@ -120,6 +147,7 @@ export function ExerciseCard({
   onExerciseChange,
   onAlternativeChange,
   originalExercise,
+  copyable = false,
 }: Props) {
   const showEditableInputs = editable || isEditing;
   const origSample = originalExercise?.sampleAnswer;
@@ -186,16 +214,22 @@ export function ExerciseCard({
           {originalExercise && originalExercise.title !== exercise.title && (
             <p className="text-xs line-through text-destructive/70">{originalExercise.title}</p>
           )}
-          <p className={`font-semibold ${originalExercise && originalExercise.title !== exercise.title ? "text-green-600 dark:text-green-400" : "text-foreground"}`}>
-            {exercise.title}
-          </p>
+          <div className="flex items-start gap-1">
+            <p className={`font-semibold flex-1 ${originalExercise && originalExercise.title !== exercise.title ? "text-green-600 dark:text-green-400" : "text-foreground"}`}>
+              {exercise.title}
+            </p>
+            {copyable && <CopyButton text={exercise.title} />}
+          </div>
           {originalExercise && originalExercise.text !== exercise.text && (
             <div className="text-xs line-through text-destructive/70 mt-1">
               <Markdown>{originalExercise.text}</Markdown>
             </div>
           )}
-          <div className={`text-sm mt-1 ${originalExercise && originalExercise.text !== exercise.text ? "text-green-600 dark:text-green-400" : "text-foreground/70"}`}>
-            <Markdown>{exercise.text}</Markdown>
+          <div className="flex items-start gap-1 mt-1">
+            <div className={`text-sm flex-1 ${originalExercise && originalExercise.text !== exercise.text ? "text-green-600 dark:text-green-400" : "text-foreground/70"}`}>
+              <Markdown>{exercise.text}</Markdown>
+            </div>
+            {copyable && <CopyButton text={exercise.text} />}
           </div>
         </div>
       )}
@@ -285,8 +319,9 @@ export function ExerciseCard({
                     </span>
                   )}
                 </div>
+                {copyable && <CopyButton text={alt.text} />}
                 {alt.correct && (
-                  <span className="ml-auto text-xs font-semibold text-blue-400 shrink-0">
+                  <span className="text-xs font-semibold text-blue-400 shrink-0">
                     correta
                   </span>
                 )}
@@ -295,7 +330,10 @@ export function ExerciseCard({
                 <p className="text-xs line-through text-destructive/70 pl-5">{origAlt!.opinion}</p>
               )}
               {alt.opinion && (
-                <p className={`text-xs pl-5 ${opinionChanged ? "text-green-600 dark:text-green-400" : "text-muted-foreground"}`}>{alt.opinion}</p>
+                <div className="flex items-center gap-1 pl-5">
+                  <p className={`text-xs flex-1 ${opinionChanged ? "text-green-600 dark:text-green-400" : "text-muted-foreground"}`}>{alt.opinion}</p>
+                  {copyable && <CopyButton text={alt.opinion} />}
+                </div>
               )}
             </div>
           );
@@ -322,8 +360,11 @@ export function ExerciseCard({
                   <Markdown>{origSample!}</Markdown>
                 </div>
               )}
-              <div className={`text-sm text-foreground/70 bg-muted/40 rounded-lg px-3 py-2 border border-border/50 ${sampleChanged ? "text-green-600 dark:text-green-400" : ""}`}>
-                <Markdown>{exercise.sampleAnswer!}</Markdown>
+              <div className="flex items-start gap-1">
+                <div className={`text-sm text-foreground/70 bg-muted/40 rounded-lg px-3 py-2 border border-border/50 flex-1 ${sampleChanged ? "text-green-600 dark:text-green-400" : ""}`}>
+                  <Markdown>{exercise.sampleAnswer!}</Markdown>
+                </div>
+                {copyable && <CopyButton text={exercise.sampleAnswer!} />}
               </div>
             </div>
           )}
@@ -353,9 +394,12 @@ export function ExerciseCard({
           {originalExercise && !originalExercise.comment && exercise.comment && (
             <div className="flex flex-col gap-1">
               <label className="text-xs text-blue-400/70">Comentário adicionado pelo instrutor</label>
-              <p className="text-sm text-foreground/70 bg-primary/5 rounded-lg px-3 py-2 border border-primary/20">
-                {exercise.comment}
-              </p>
+              <div className="flex items-start gap-1">
+                <p className="text-sm text-foreground/70 bg-primary/5 rounded-lg px-3 py-2 border border-primary/20 flex-1">
+                  {exercise.comment}
+                </p>
+                {copyable && <CopyButton text={exercise.comment} />}
+              </div>
             </div>
           )}
           {originalExercise && originalExercise.comment && originalExercise.comment !== exercise.comment && (
@@ -364,17 +408,23 @@ export function ExerciseCard({
               <p className="text-xs line-through text-destructive/70 bg-muted/50 rounded px-3 py-1">
                 {originalExercise.comment}
               </p>
-              <p className="text-sm text-foreground/70 bg-muted/50 rounded-lg px-3 py-2 border border-border/50">
-                {exercise.comment}
-              </p>
+              <div className="flex items-start gap-1">
+                <p className="text-sm text-foreground/70 bg-muted/50 rounded-lg px-3 py-2 border border-border/50 flex-1">
+                  {exercise.comment}
+                </p>
+                {copyable && exercise.comment && <CopyButton text={exercise.comment} />}
+              </div>
             </div>
           )}
           {!originalExercise && exercise.comment && (
             <div className="flex flex-col gap-1">
               <label className="text-xs text-muted-foreground">Comentário do instrutor</label>
-              <p className="text-sm text-foreground/70 bg-muted/50 rounded-lg px-3 py-2 border border-border/50">
-                {exercise.comment}
-              </p>
+              <div className="flex items-start gap-1">
+                <p className="text-sm text-foreground/70 bg-muted/50 rounded-lg px-3 py-2 border border-border/50 flex-1">
+                  {exercise.comment}
+                </p>
+                {copyable && <CopyButton text={exercise.comment} />}
+              </div>
             </div>
           )}
         </>

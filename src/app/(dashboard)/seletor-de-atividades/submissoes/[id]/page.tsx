@@ -267,6 +267,7 @@ export default function SubmissaoDetailPage({
                 onExerciseChange={handleExerciseChange}
                 onAlternativeChange={handleAlternativeChange}
                 defaultOpen
+                copyable
               />
             ))}
           </section>
