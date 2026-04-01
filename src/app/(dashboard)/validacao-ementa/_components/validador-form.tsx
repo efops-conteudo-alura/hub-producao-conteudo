@@ -146,8 +146,19 @@ export function ValidadorForm() {
       })
 
       if (!res.ok) {
-        const data = await res.json()
-        throw new Error(data.error || "Erro ao processar a ementa")
+        let errorMsg = "Erro ao processar a ementa"
+        try {
+          const data = await res.json()
+          errorMsg = data.error || errorMsg
+        } catch {
+          // resposta não é JSON (ex: timeout da Vercel retorna HTML)
+          if (res.status === 504 || res.status === 408) {
+            errorMsg = "A análise demorou demais e o servidor encerrou a conexão. Tente com uma ementa menor ou tente novamente."
+          } else if (res.status >= 500) {
+            errorMsg = "Erro interno no servidor. Tente novamente em instantes."
+          }
+        }
+        throw new Error(errorMsg)
       }
 
       const data = await res.json()
