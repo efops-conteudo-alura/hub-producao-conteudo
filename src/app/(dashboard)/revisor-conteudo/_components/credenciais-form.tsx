@@ -8,8 +8,6 @@ import { Label } from "@/components/ui/label"
 
 const SERVICES = [
   { id: "github", label: "GitHub Token", placeholder: "ghp_..." },
-  { id: "aws_access_key", label: "AWS Access Key ID", placeholder: "AKIA..." },
-  { id: "aws_secret_key", label: "AWS Secret Access Key", placeholder: "..." },
   { id: "video_uploader", label: "Video Uploader (credencial)", placeholder: "..." },
 ] as const
 

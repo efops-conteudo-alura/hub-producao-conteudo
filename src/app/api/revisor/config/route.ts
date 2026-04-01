@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/db"
 
-const ALLOWED_SERVICES = ["github", "aws_access_key", "aws_secret_key", "video_uploader"] as const
+const ALLOWED_SERVICES = ["github", "video_uploader"] as const
 type Service = (typeof ALLOWED_SERVICES)[number]
 
 export async function GET() {
