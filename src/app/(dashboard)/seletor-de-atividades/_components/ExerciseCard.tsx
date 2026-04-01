@@ -461,7 +461,7 @@ export function ExerciseCard({
         <div className="flex justify-end pt-1">
           <button
             onClick={() => onRestore(lesson.lessonNumber, exercise)}
-            className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition-colors"
+            className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-blue-400/10 text-blue-400 hover:bg-blue-400/20 transition-colors"
           >
             + Incluir na seleção
           </button>
