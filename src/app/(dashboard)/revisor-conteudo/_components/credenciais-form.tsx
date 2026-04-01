@@ -15,7 +15,7 @@ const SERVICES = [
 
 type ServiceId = (typeof SERVICES)[number]["id"]
 
-export function CredenciaisSection() {
+export function CredenciaisTab() {
   const [values, setValues] = useState<Partial<Record<ServiceId, string>>>({})
   const [visible, setVisible] = useState<Partial<Record<ServiceId, boolean>>>({})
   const [saving, setSaving] = useState<ServiceId | null>(null)
@@ -53,8 +53,7 @@ export function CredenciaisSection() {
   }
 
   return (
-    <section>
-      <h2 className="text-base font-semibold mb-1">Tokens e Credenciais</h2>
+    <div className="max-w-lg">
       <p className="text-sm text-muted-foreground mb-6">
         Credenciais usadas pela extensão Chrome. Armazenadas de forma segura por usuário.
       </p>
@@ -76,9 +75,7 @@ export function CredenciaisSection() {
                 />
                 <button
                   type="button"
-                  onClick={() =>
-                    setVisible((v) => ({ ...v, [id]: !v[id] }))
-                  }
+                  onClick={() => setVisible((v) => ({ ...v, [id]: !v[id] }))}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                   tabIndex={-1}
                 >
@@ -102,6 +99,6 @@ export function CredenciaisSection() {
           </div>
         ))}
       </div>
-    </section>
+    </div>
   )
 }
