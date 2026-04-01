@@ -4,7 +4,7 @@ import { useState } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { signOut, useSession } from "next-auth/react"
-import { Home, BookOpen, FileCheck, LogOut, GraduationCap, BookMarked, BarChart2, ListChecks } from "lucide-react"
+import { Home, BookOpen, FileCheck, LogOut, GraduationCap, BookMarked, BarChart2, ListChecks, ScanSearch } from "lucide-react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { ProfileDialog } from "@/components/profile-dialog"
 
@@ -23,6 +23,7 @@ const mainNavItems = [
   { href: "/revisao-didatica", label: "Revisão Didática", icon: GraduationCap },
   { href: "/seletor-de-atividades", label: "Seletor de Ativ.", icon: ListChecks },
   { href: "/plano-de-estudos", label: "Plano de Estudos", icon: BookMarked },
+  { href: "/revisor-conteudo", label: "Revisor de Conteúdo", icon: ScanSearch },
 ]
 
 const bottomNavItems = [

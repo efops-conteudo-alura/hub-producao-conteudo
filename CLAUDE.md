@@ -115,6 +115,7 @@ Este app é parte de um ecossistema que compartilha o mesmo banco. O **hub-efops
 | `hub-efops` | projeto-hub-efops | `ADMIN`, `USER` |
 | `hub-producao-conteudo` | este projeto | `ADMIN`, `USER` |
 | `select-activity` | (embutido neste projeto) | `ADMIN`, `COORDINATOR`, `INSTRUCTOR` |
+| `revisor-conteudo` | (embutido neste projeto — extensão Chrome) | `USER` |
 
 ### AppRole — como o acesso é controlado
 
@@ -170,6 +171,31 @@ Cada usuário tem zero ou mais `AppRole` no banco. Sem AppRole para um app = sem
 | Seletor de Atividades | `/seletor-de-atividades` | ✅ Implementado |
 | Revisão Didática | `/revisao-didatica` | 🔲 Placeholder |
 | Plano de Estudos | `/plano-de-estudos` | 🔲 Placeholder |
+| Revisor de Conteúdo | `/revisor-conteudo` | 🔲 Estrutura criada — aguardando migration |
+
+---
+
+## Revisor de Conteúdo — Integração com extensão Chrome
+
+O módulo `/revisor-conteudo` é o "cérebro" da extensão `alura-revisor-conteudo` (veja issues hub-producao-conteudo#13 e alura-revisor-conteudo#5).
+
+### Distribuição automática da extensão
+
+- `public/update.xml` — Chrome consulta este arquivo para atualizar a extensão silenciosamente
+- `public/alura-revisor-conteudo.zip` — pacote da extensão; **deve ser gerado e copiado manualmente** a cada nova versão
+- O campo `appid` no `update.xml` deve ser substituído pelo ID real da extensão (visível em `chrome://extensions/` após a primeira instalação)
+
+### API routes
+
+- `GET/POST /api/revisor/auditorias` — a extensão envia auditorias via POST; hub lista via GET
+- `GET/PUT /api/revisor/config` — gerenciamento de credenciais por usuário (GitHub, AWS, video-uploader)
+
+### Pendências antes de funcionar em produção
+
+1. **Migration no hub-efops**: os models `RevisorAuditoria` e `UserCredential` estão no `schema.prisma` mas ainda não foram migrados. Até isso acontecer, as rotas retornam `[]` ou `503` graciosamente.
+2. **AppRole `revisor-conteudo:USER`**: definir e adicionar ao fluxo de cadastro (`/api/seletor/auth/register`) quando a integração for completa.
+3. **Criptografia das credenciais**: o campo `value` em `UserCredential` está armazenando texto plano por enquanto. Implementar criptografia AES-256-GCM (mesmo padrão do `SystemConfig`) antes de ir a produção.
+4. **ID da extensão**: substituir `EXTENSAO_ID_AQUI` no `public/update.xml` pelo ID real.
 
 ---
 
