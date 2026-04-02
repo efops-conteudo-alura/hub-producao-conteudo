@@ -47,6 +47,7 @@ export default function SubmissaoDetailPage({
   const [submission, setSubmission] = useState<SubmissionDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [exporting, setExporting] = useState(false);
+  const [uploading, setUploading] = useState(false);
 
   const [editedLessons, setEditedLessons] = useState<Lesson[]>([]);
   const [editingExerciseId, setEditingExerciseId] = useState<string | null>(null);
@@ -180,64 +181,60 @@ export default function SubmissaoDetailPage({
     );
   }
 
-  async function handleExport() {
+  async function markAsExported(): Promise<boolean> {
+    if (!submission) return false;
+    const res = await fetch(`/api/seletor/submissoes/${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        status: "exported",
+        submittedData: { courseId: submission.courseId, lessons: editedLessons },
+      }),
+    });
+    if (!res.ok) {
+      const json = await res.json().catch(() => ({}));
+      setExportError(json.error ?? "Erro ao salvar exportação. Tente novamente.");
+      return false;
+    }
+    setSubmission((prev) => (prev ? { ...prev, status: "exported" } : prev));
+    return true;
+  }
+
+  async function handleDownload() {
     if (!submission) return;
     setExporting(true);
     setExportError(null);
-    setUploadFeedback(null);
-
     try {
-      // 1. Marca como exportado no banco
-      const res = await fetch(`/api/seletor/submissoes/${id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          status: "exported",
-          submittedData: { courseId: submission.courseId, lessons: editedLessons },
-        }),
-      });
-
-      if (!res.ok) {
-        const json = await res.json().catch(() => ({}));
-        setExportError(json.error ?? "Erro ao salvar exportação. Tente novamente.");
-        return;
-      }
-
-      setSubmission((prev) => (prev ? { ...prev, status: "exported" } : prev));
-
-      // 2. Tenta entregar para a extensão via postMessage
-      const sections = buildExportSections(editedLessons);
-      const payload = {
-        type: "HUB_EXPORT_REQUEST",
-        courseId: submission.courseId,
-        sections,
-      };
-
-      window.postMessage(payload, "*");
-
-      const extensionPresent = await new Promise<boolean>((resolve) => {
-        const timer = setTimeout(() => resolve(false), 400);
-        function onAck(e: MessageEvent) {
-          if (e.source === window && e.data?.type === "EXTENSION_ACK") {
-            clearTimeout(timer);
-            window.removeEventListener("message", onAck);
-            resolve(true);
-          }
-        }
-        window.addEventListener("message", onAck);
-      });
-
-      // 3. Fallback: download normal se extensão não estiver instalada
-      if (!extensionPresent) {
-        exportSelectedCourse(
-          { courseId: submission.courseId, lessons: editedLessons },
-          editedLessons
-        );
-      }
+      const ok = await markAsExported();
+      if (!ok) return;
+      exportSelectedCourse(
+        { courseId: submission.courseId, lessons: editedLessons },
+        editedLessons
+      );
     } catch {
       setExportError("Erro de conexão. Verifique sua internet e tente novamente.");
     } finally {
       setExporting(false);
+    }
+  }
+
+  async function handleUploadToAdmin() {
+    if (!submission) return;
+    setUploading(true);
+    setExportError(null);
+    setUploadFeedback(null);
+    try {
+      const ok = await markAsExported();
+      if (!ok) return;
+      const sections = buildExportSections(editedLessons);
+      window.postMessage(
+        { type: "HUB_EXPORT_REQUEST", courseId: submission.courseId, sections },
+        "*"
+      );
+    } catch {
+      setExportError("Erro de conexão. Verifique sua internet e tente novamente.");
+    } finally {
+      setUploading(false);
     }
   }
 
@@ -397,13 +394,22 @@ export default function SubmissaoDetailPage({
               {uploadFeedback.message}
             </p>
           )}
-          <button
-            onClick={handleExport}
-            disabled={exporting || editedLessons.length === 0}
-            className="bg-primary hover:bg-primary/80 disabled:opacity-50 text-primary-foreground font-bold px-8 py-3 rounded-xl transition-colors"
-          >
-            {exporting ? "Exportando..." : "⬇ Exportar JSON"}
-          </button>
+          <div className="flex gap-3">
+            <button
+              onClick={handleUploadToAdmin}
+              disabled={uploading || exporting || editedLessons.length === 0}
+              className="bg-secondary hover:bg-secondary/80 disabled:opacity-50 text-secondary-foreground font-bold px-6 py-3 rounded-xl transition-colors"
+            >
+              {uploading ? "Enviando..." : "↑ Subir no Admin"}
+            </button>
+            <button
+              onClick={handleDownload}
+              disabled={exporting || uploading || editedLessons.length === 0}
+              className="bg-primary hover:bg-primary/80 disabled:opacity-50 text-primary-foreground font-bold px-8 py-3 rounded-xl transition-colors"
+            >
+              {exporting ? "Exportando..." : "⬇ Baixar JSON"}
+            </button>
+          </div>
         </div>
       </footer>
     </div>
