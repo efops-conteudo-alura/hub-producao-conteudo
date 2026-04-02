@@ -21,15 +21,14 @@ export function DistribuicaoTab() {
           </div>
           <pre className="text-xs bg-sidebar rounded-lg p-3 overflow-x-auto text-muted-foreground leading-relaxed">{`<?xml version='1.0' encoding='UTF-8'?>
 <gupdate xmlns='http://www.google.com/update2/response' protocol='2.0'>
-  <app appid='EXTENSAO_ID_AQUI'>
+  <app appid='gdabdjfmfbmmfoklejfhpjlkdohimjfe'>
     <updatecheck
       codebase='https://hub-producao-conteudo.vercel.app/alura-revisor-conteudo.zip'
-      version='0.0.1' />
+      version='0.3.0' />
   </app>
 </gupdate>`}</pre>
           <p className="text-xs text-muted-foreground">
-            Substitua <code className="text-foreground">EXTENSAO_ID_AQUI</code> pelo ID real (visível em{" "}
-            <code className="text-foreground">chrome://extensions/</code> após a primeira instalação) e atualize a <code className="text-foreground">version</code> a cada release.
+            Atualize a <code className="text-foreground">version</code> a cada release — deve bater com a versão no <code className="text-foreground">manifest.json</code> da extensão.
           </p>
         </div>
 
