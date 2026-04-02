@@ -80,7 +80,7 @@ export function Sidebar({ user }: SidebarProps) {
       </div>
 
       {/* Navegação principal (produção) */}
-      <nav className="flex-1 flex flex-col items-center py-4 gap-2 px-2">
+      <nav className="flex-1 flex flex-col items-center py-4 gap-2 px-2 overflow-y-auto">
         {visibleMainItems.map((item) => (
           <NavLink key={item.href} {...item} />
         ))}
