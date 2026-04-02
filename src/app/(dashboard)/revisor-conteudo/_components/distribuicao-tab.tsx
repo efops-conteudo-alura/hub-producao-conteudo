@@ -65,9 +65,8 @@ export function DistribuicaoTab() {
             <span className="shrink-0 w-5 h-5 rounded-full bg-muted text-foreground text-xs flex items-center justify-center font-semibold mt-0.5">2</span>
             <div className="space-y-2">
               <p className="text-foreground font-medium">Gerar o novo ZIP</p>
-              <p className="text-muted-foreground text-xs">Rodar no terminal, a partir da pasta <code className="text-foreground">projetos-alura</code>:</p>
-              <pre className="text-xs bg-sidebar rounded-lg p-3 overflow-x-auto text-muted-foreground leading-relaxed">{`cd alura-revisor-conteudo
-powershell -Command "Compress-Archive -Path manifest.json,background.js,content.js,content-hub.js,content-dropbox.js,popup.html,popup.js,icon16.png,icon48.png,icon128.png,jsconfig.json,icons -DestinationPath '../projeto-hub-producao-conteudo/public/alura-revisor-conteudo.zip' -Force"`}</pre>
+              <p className="text-muted-foreground text-xs">Rodar no terminal dentro da pasta <code className="text-foreground">alura-revisor-conteudo</code>:</p>
+              <pre className="text-xs bg-sidebar rounded-lg p-3 overflow-x-auto text-muted-foreground leading-relaxed whitespace-pre-wrap break-all">{`powershell -Command "Compress-Archive -Path manifest.json,background.js,content.js,content-hub.js,content-dropbox.js,popup.html,popup.js,icon16.png,icon48.png,icon128.png,jsconfig.json,icons -DestinationPath '../projeto-hub-producao-conteudo/public/alura-revisor-conteudo.zip' -Force"`}</pre>
             </div>
           </li>
           <li className="flex gap-3">
