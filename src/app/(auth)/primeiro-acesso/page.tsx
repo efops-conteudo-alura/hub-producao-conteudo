@@ -39,20 +39,25 @@ export default function PrimeiroAcessoPage() {
     }
 
     setLoading(true);
-    const res = await fetch("/api/seletor/auth/register", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, email, password }),
-    });
-    const data = await res.json();
-    setLoading(false);
+    try {
+      const res = await fetch("/api/seletor/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, email, password }),
+      });
+      const data = await res.json();
 
-    if (!res.ok) {
-      setError(data.error ?? "Erro ao criar conta.");
-      return;
+      if (!res.ok) {
+        setError(data.error ?? "Erro ao criar conta.");
+        return;
+      }
+
+      router.push("/login?msg=conta-criada");
+    } catch {
+      setError("Erro de conexão. Tente novamente.");
+    } finally {
+      setLoading(false);
     }
-
-    router.push("/login?msg=conta-criada");
   }
 
   return (
