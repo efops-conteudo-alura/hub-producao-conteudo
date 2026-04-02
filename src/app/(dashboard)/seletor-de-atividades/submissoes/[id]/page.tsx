@@ -6,6 +6,26 @@ import { LessonAccordion } from "../../_components/LessonAccordion";
 import { exportSelectedCourse } from "@/lib/export";
 import type { Alternative, Course, Exercise, Lesson } from "@/types/course";
 
+function buildExportSections(lessons: Lesson[]) {
+  return lessons.map((lesson) => ({
+    id: String(lesson.lessonNumber),
+    title: lesson.title ?? "",
+    activities: lesson.exercises.map((ex) => ({
+      id: ex.id,
+      taskEnum: ex.kind,
+      dataTag: ex.dataTag,
+      title: ex.title,
+      body: ex.text,
+      ...(ex.sampleAnswer !== undefined ? { opinion: ex.sampleAnswer } : {}),
+      alternatives: ex.alternatives.map(({ text: body, opinion: justification, correct }) => ({
+        body,
+        justification,
+        correct,
+      })),
+    })),
+  }));
+}
+
 interface SubmissionDetail {
   id: string;
   courseId: string;
@@ -31,6 +51,7 @@ export default function SubmissaoDetailPage({
   const [editedLessons, setEditedLessons] = useState<Lesson[]>([]);
   const [editingExerciseId, setEditingExerciseId] = useState<string | null>(null);
   const [exportError, setExportError] = useState<string | null>(null);
+  const [uploadFeedback, setUploadFeedback] = useState<{ success: boolean; message: string } | null>(null);
 
   useEffect(() => {
     fetch(`/api/seletor/submissoes/${id}`)
@@ -50,6 +71,36 @@ export default function SubmissaoDetailPage({
       })
       .catch(() => setLoading(false));
   }, [id]);
+
+  // Anuncia a página para a extensão ao montar
+  useEffect(() => {
+    window.postMessage({ type: "HUB_PAGE_READY", pageType: "seletor-atividades", courseId: id }, "*");
+  }, []);  // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Ouve o resultado do upload feito pela extensão
+  useEffect(() => {
+    function onMessage(e: MessageEvent) {
+      if (e.source !== window) return;
+      if (e.data?.type !== "EXTENSION_UPLOAD_DONE") return;
+      const { success, count, errors, platform } = e.data as {
+        success: boolean;
+        count?: number;
+        errors?: number;
+        platform?: string;
+      };
+      const plat = platform ? ` para ${platform}` : "";
+      if (success) {
+        setUploadFeedback({ success: true, message: `${count ?? "?"} atividades enviadas${plat}.` });
+      } else {
+        setUploadFeedback({
+          success: false,
+          message: `Falha no envio${plat}. ${errors ? `${errors} erro(s).` : ""}`.trim(),
+        });
+      }
+    }
+    window.addEventListener("message", onMessage);
+    return () => window.removeEventListener("message", onMessage);
+  }, []);
 
   function handleEditToggle(exerciseId: string) {
     setEditingExerciseId((prev) => (prev === exerciseId ? null : exerciseId));
@@ -133,8 +184,10 @@ export default function SubmissaoDetailPage({
     if (!submission) return;
     setExporting(true);
     setExportError(null);
+    setUploadFeedback(null);
 
     try {
+      // 1. Marca como exportado no banco
       const res = await fetch(`/api/seletor/submissoes/${id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
@@ -150,11 +203,37 @@ export default function SubmissaoDetailPage({
         return;
       }
 
-      exportSelectedCourse(
-        { courseId: submission.courseId, lessons: editedLessons },
-        editedLessons
-      );
       setSubmission((prev) => (prev ? { ...prev, status: "exported" } : prev));
+
+      // 2. Tenta entregar para a extensão via postMessage
+      const sections = buildExportSections(editedLessons);
+      const payload = {
+        type: "HUB_EXPORT_REQUEST",
+        courseId: submission.courseId,
+        sections,
+      };
+
+      window.postMessage(payload, "*");
+
+      const extensionPresent = await new Promise<boolean>((resolve) => {
+        const timer = setTimeout(() => resolve(false), 400);
+        function onAck(e: MessageEvent) {
+          if (e.source === window && e.data?.type === "EXTENSION_ACK") {
+            clearTimeout(timer);
+            window.removeEventListener("message", onAck);
+            resolve(true);
+          }
+        }
+        window.addEventListener("message", onAck);
+      });
+
+      // 3. Fallback: download normal se extensão não estiver instalada
+      if (!extensionPresent) {
+        exportSelectedCourse(
+          { courseId: submission.courseId, lessons: editedLessons },
+          editedLessons
+        );
+      }
     } catch {
       setExportError("Erro de conexão. Verifique sua internet e tente novamente.");
     } finally {
@@ -304,6 +383,18 @@ export default function SubmissaoDetailPage({
           {exportError && (
             <p className="text-destructive text-sm bg-destructive/10 px-4 py-2 rounded-lg w-full text-center">
               {exportError}
+            </p>
+          )}
+          {uploadFeedback && (
+            <p
+              className={`text-sm px-4 py-2 rounded-lg w-full text-center ${
+                uploadFeedback.success
+                  ? "text-green-700 dark:text-green-400 bg-green-500/10"
+                  : "text-destructive bg-destructive/10"
+              }`}
+            >
+              {uploadFeedback.success ? "✓ " : "✕ "}
+              {uploadFeedback.message}
             </p>
           )}
           <button
