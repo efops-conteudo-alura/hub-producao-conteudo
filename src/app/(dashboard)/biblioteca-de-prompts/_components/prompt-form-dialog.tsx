@@ -1,7 +1,6 @@
 "use client"
 
 import { useState } from "react"
-import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
@@ -17,16 +16,26 @@ interface Prompt {
   categoria: string | null
 }
 
+export interface PromptSaved {
+  id: string
+  titulo: string
+  descricao: string | null
+  conteudo: string
+  categoria: string | null
+  autorNome: string
+  autorId: string
+  createdAt: string
+}
+
 interface Props {
   prompt?: Prompt
-  onSuccess: () => void
+  onSuccess: (saved: PromptSaved) => void
   // modo controlado (para abrir de fora, ex: dialog de visualização)
   open?: boolean
   onOpenChange?: (open: boolean) => void
 }
 
 export function PromptFormDialog({ prompt, onSuccess, open: openProp, onOpenChange }: Props) {
-  const router = useRouter()
   const [openInternal, setOpenInternal] = useState(false)
   const [loading, setLoading] = useState(false)
   const [form, setForm] = useState({
@@ -55,10 +64,10 @@ export function PromptFormDialog({ prompt, onSuccess, open: openProp, onOpenChan
         body: JSON.stringify(form),
       })
       if (res.ok) {
+        const saved: PromptSaved = await res.json()
         setOpen(false)
         if (!isEdit) setForm({ titulo: "", descricao: "", conteudo: "", categoria: "" })
-        onSuccess()
-        router.refresh()
+        onSuccess(saved)
       }
     } finally {
       setLoading(false)

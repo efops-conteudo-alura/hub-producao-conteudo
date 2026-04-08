@@ -1,7 +1,6 @@
 "use client"
 
 import { useState, useMemo } from "react"
-import { useRouter } from "next/navigation"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -13,7 +12,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { Check, Copy, Trash2, Search, BookText, Eye, Pencil, Loader2 } from "lucide-react"
-import { PromptFormDialog } from "./prompt-form-dialog"
+import { PromptFormDialog, type PromptSaved } from "./prompt-form-dialog"
 
 interface Prompt {
   id: string
@@ -41,7 +40,7 @@ function PromptCard({
   prompt: Prompt
   isAdmin: boolean
   onDeleted: (id: string) => void
-  onUpdated: () => void
+  onUpdated: (saved: PromptSaved) => void
 }) {
   const [viewOpen, setViewOpen] = useState(false)
   const [editOpen, setEditOpen] = useState(false)
@@ -108,7 +107,7 @@ function PromptCard({
 
       {/* Dialog: Visualizar */}
       <Dialog open={viewOpen} onOpenChange={setViewOpen}>
-        <DialogContent className="sm:max-w-[80vw] max-h-[80vh] flex flex-col">
+        <DialogContent className="sm:max-w-[80vw] max-h-[80vh] flex flex-col overflow-hidden">
           <DialogHeader className="shrink-0">
             <DialogTitle>{prompt.titulo}</DialogTitle>
             <div className="flex items-center gap-2 flex-wrap pt-1">
@@ -192,7 +191,6 @@ function PromptCard({
 }
 
 export function PromptsClient({ prompts: initial, userId, isAdmin }: Props) {
-  const router = useRouter()
   const [prompts, setPrompts] = useState<Prompt[]>(initial)
   const [busca, setBusca] = useState("")
   const [categoriaAtiva, setCategoriaAtiva] = useState<string | null>(null)
@@ -222,8 +220,12 @@ export function PromptsClient({ prompts: initial, userId, isAdmin }: Props) {
     setPrompts((prev) => prev.filter((p) => p.id !== id))
   }
 
-  function handleUpdated() {
-    router.refresh()
+  function handleUpdated(saved: PromptSaved) {
+    setPrompts((prev) => prev.map((p) => p.id === saved.id ? { ...p, ...saved } : p))
+  }
+
+  function handleCreated(saved: PromptSaved) {
+    setPrompts((prev) => [saved, ...prev])
   }
 
   return (
@@ -236,7 +238,7 @@ export function PromptsClient({ prompts: initial, userId, isAdmin }: Props) {
             {prompts.length} prompt{prompts.length !== 1 ? "s" : ""} · compartilhados pelo time
           </p>
         </div>
-        <PromptFormDialog onSuccess={() => router.refresh()} />
+        <PromptFormDialog onSuccess={handleCreated} />
       </div>
 
       {/* Filtros */}
