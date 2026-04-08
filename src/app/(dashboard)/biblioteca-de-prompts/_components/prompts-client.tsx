@@ -34,11 +34,13 @@ interface Props {
 function PromptCard({
   prompt,
   isAdmin,
+  userId,
   onDeleted,
   onUpdated,
 }: {
   prompt: Prompt
   isAdmin: boolean
+  userId: string
   onDeleted: (id: string) => void
   onUpdated: (saved: PromptSaved) => void
 }) {
@@ -47,6 +49,8 @@ function PromptCard({
   const [copiado, setCopiado] = useState(false)
   const [deletando, setDeletando] = useState(false)
 
+  const canEdit = isAdmin || userId === prompt.autorId
+
   async function copiar() {
     await navigator.clipboard.writeText(prompt.conteudo)
     setCopiado(true)
@@ -54,6 +58,7 @@ function PromptCard({
   }
 
   async function excluir() {
+    if (deletando) return
     if (!confirm(`Excluir o prompt "${prompt.titulo}"?`)) return
     setDeletando(true)
     try {
@@ -151,15 +156,17 @@ function PromptCard({
                   Excluir
                 </Button>
               )}
-              <Button
-                variant="outline"
-                size="sm"
-                className="h-8 text-xs gap-1.5"
-                onClick={abrirEdicao}
-              >
-                <Pencil size={13} />
-                Editar
-              </Button>
+              {canEdit && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-8 text-xs gap-1.5"
+                  onClick={abrirEdicao}
+                >
+                  <Pencil size={13} />
+                  Editar
+                </Button>
+              )}
               <Button
                 size="sm"
                 className="h-8 text-xs gap-1.5"
@@ -194,10 +201,6 @@ export function PromptsClient({ prompts: initial, userId, isAdmin }: Props) {
   const [prompts, setPrompts] = useState<Prompt[]>(initial)
   const [busca, setBusca] = useState("")
   const [categoriaAtiva, setCategoriaAtiva] = useState<string | null>(null)
-
-  // userId é usado pelo servidor para permissão — não é necessário no cliente neste fluxo,
-  // mas mantemos na prop para consistência com a API de delete
-  void userId
 
   const categorias = useMemo(
     () => [...new Set(prompts.map((p) => p.categoria).filter(Boolean) as string[])].sort(),
@@ -303,6 +306,7 @@ export function PromptsClient({ prompts: initial, userId, isAdmin }: Props) {
               key={prompt.id}
               prompt={prompt}
               isAdmin={isAdmin}
+              userId={userId}
               onDeleted={handleDeleted}
               onUpdated={handleUpdated}
             />

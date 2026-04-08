@@ -38,6 +38,7 @@ interface Props {
 export function PromptFormDialog({ prompt, onSuccess, open: openProp, onOpenChange }: Props) {
   const [openInternal, setOpenInternal] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [erro, setErro] = useState<string | null>(null)
   const [form, setForm] = useState({
     titulo: prompt?.titulo ?? "",
     descricao: prompt?.descricao ?? "",
@@ -55,6 +56,7 @@ export function PromptFormDialog({ prompt, onSuccess, open: openProp, onOpenChan
     e.preventDefault()
     if (!form.titulo.trim() || !form.conteudo.trim()) return
     setLoading(true)
+    setErro(null)
     try {
       const url = isEdit ? `/api/biblioteca-de-prompts/${prompt.id}` : "/api/biblioteca-de-prompts"
       const method = isEdit ? "PUT" : "POST"
@@ -68,14 +70,19 @@ export function PromptFormDialog({ prompt, onSuccess, open: openProp, onOpenChan
         setOpen(false)
         if (!isEdit) setForm({ titulo: "", descricao: "", conteudo: "", categoria: "" })
         onSuccess(saved)
+      } else {
+        const data = await res.json().catch(() => ({}))
+        setErro((data as { error?: string }).error ?? "Erro ao salvar o prompt. Tente novamente.")
       }
+    } catch {
+      setErro("Erro de conexão. Verifique sua internet e tente novamente.")
     } finally {
       setLoading(false)
     }
   }
 
   const dialogContent = (
-    <DialogContent className="sm:max-w-[60vw]">
+    <DialogContent className="sm:max-w-[60vw] max-h-[90vh] overflow-y-auto">
       <DialogHeader>
         <DialogTitle>{isEdit ? "Editar Prompt" : "Novo Prompt"}</DialogTitle>
       </DialogHeader>
@@ -117,11 +124,13 @@ export function PromptFormDialog({ prompt, onSuccess, open: openProp, onOpenChan
             value={form.conteudo}
             onChange={(e) => setForm({ ...form, conteudo: e.target.value })}
             placeholder="Escreva o prompt aqui..."
-            rows={8}
-            className="font-mono text-sm"
+            className="font-mono text-sm min-h-[8rem] max-h-[30vh] resize-y overflow-y-auto"
             required
           />
         </div>
+        {erro && (
+          <p className="text-sm text-destructive">{erro}</p>
+        )}
         <div className="flex justify-end gap-2 pt-1">
           <Button type="button" variant="ghost" onClick={() => setOpen(false)}>
             Cancelar
