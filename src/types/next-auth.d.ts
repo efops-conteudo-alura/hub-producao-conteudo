@@ -7,8 +7,8 @@ declare module "next-auth" {
       name?: string | null;
       email?: string | null;
       image?: string | null;
-      role: string;           // hub-producao-conteudo role: "USER" | "ADMIN" | ""
-      selectorRole?: string;  // select-activity role: "INSTRUCTOR" | "COORDINATOR" | "ADMIN"
+      role: string;           // hub-producao-conteudo role: "USER" | "COORDINATOR" | "INSTRUCTOR" | "ADMIN" | ""
+      selectorRole?: string;  // role efetivo no módulo seletor: "INSTRUCTOR" | "COORDINATOR" | "ADMIN"
     };
   }
 

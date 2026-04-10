@@ -38,7 +38,7 @@ function LoginForm() {
 
     if (result?.error) {
       if (result.error === "NeedPassword") {
-        setError("Sua conta ainda não tem senha. Crie uma em /criar-senha.");
+        setError("Sua conta ainda não tem senha cadastrada. Crie uma senha para continuar.");
       } else if (result.error === "NoAccess") {
         setError("Você não tem acesso a este sistema. Contacte um administrador.");
       } else {
@@ -72,10 +72,7 @@ function LoginForm() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="password">
-                Senha{" "}
-                <span className="text-muted-foreground font-normal text-xs">(instrutores: deixe em branco)</span>
-              </Label>
+              <Label htmlFor="password">Senha</Label>
               <Input
                 id="password"
                 name="password"
@@ -91,9 +88,9 @@ function LoginForm() {
             {error && (
               <p className="text-sm text-destructive">
                 {error}{" "}
-                {error.includes("/criar-senha") && (
+                {error.includes("senha cadastrada") && (
                   <Link href="/criar-senha" className="underline font-medium">
-                    Criar senha
+                    Criar senha agora
                   </Link>
                 )}
               </p>

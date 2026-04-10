@@ -59,8 +59,7 @@ export function Sidebar({ user }: SidebarProps) {
   const isInstructor =
     session?.user?.role === "INSTRUCTOR" ||
     (session?.user?.selectorRole === "INSTRUCTOR" && !session?.user?.role)
-  // Instrutores fazem login sem senha — não podem editar credenciais por aqui
-  const canChangePassword = !isInstructor
+  const canChangePassword = true // todos os usuários agora têm senha
 
   const visibleMainItems = isInstructor ? [seletorItem] : mainNavItems
   const visibleBottomItems = isInstructor ? [] : bottomNavItems

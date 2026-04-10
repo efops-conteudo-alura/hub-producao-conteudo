@@ -88,8 +88,8 @@ export async function POST(req: NextRequest) {
     instructorRole = await prisma.appRole.findFirst({
       where: {
         userId: instructorId,
-        app: "select-activity",
         role: "INSTRUCTOR",
+        app: { in: ["hub-producao-conteudo", "select-activity"] },
       },
     });
   } catch (e) {

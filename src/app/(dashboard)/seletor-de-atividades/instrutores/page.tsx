@@ -50,7 +50,7 @@ export default function InstrutoresPage() {
     ]);
     setName("");
     setEmail("");
-    setSuccess(`${data.name} cadastrado. Compartilhe o link do app e peça que ele entre com o email.`);
+    setSuccess(`${data.name} cadastrado. No primeiro acesso, o instrutor deve ir em /criar-senha para definir a sua senha.`);
   }
 
   return (
@@ -103,7 +103,8 @@ export default function InstrutoresPage() {
           </button>
         </form>
         <p className="text-muted-foreground text-xs">
-          O instrutor entra no app apenas com o email — sem precisar criar senha.
+          No primeiro acesso, o instrutor precisa criar uma senha em{" "}
+          <span className="font-mono">/criar-senha</span>.
         </p>
       </div>
 

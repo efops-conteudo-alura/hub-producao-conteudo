@@ -30,17 +30,11 @@ export async function POST(req: NextRequest) {
 
   const existing = await prisma.user.findUnique({ where: { email: normalizedEmail } });
   if (existing) {
-    // Usuário já existe (criado pelo hub-efops ou select-activity):
-    // garante que tenha os AppRoles dos dois apps deste hub.
+    // Usuário já existe: garante AppRole como COORDINATOR no hub-producao-conteudo
     await prisma.appRole.upsert({
       where: { userId_app: { userId: existing.id, app: "hub-producao-conteudo" } },
-      create: { userId: existing.id, app: "hub-producao-conteudo", role: "USER" },
-      update: {},
-    });
-    await prisma.appRole.upsert({
-      where: { userId_app: { userId: existing.id, app: "select-activity" } },
-      create: { userId: existing.id, app: "select-activity", role: "COORDINATOR" },
-      update: {},
+      create: { userId: existing.id, app: "hub-producao-conteudo", role: "COORDINATOR" },
+      update: { role: "COORDINATOR" },
     });
     return NextResponse.json({ success: true, existing: true });
   }
@@ -50,11 +44,8 @@ export async function POST(req: NextRequest) {
     data: { email: normalizedEmail, name: name.trim(), password: hashed },
   });
 
-  await prisma.appRole.createMany({
-    data: [
-      { userId: newUser.id, app: "hub-producao-conteudo", role: "USER" },
-      { userId: newUser.id, app: "select-activity", role: "COORDINATOR" },
-    ],
+  await prisma.appRole.create({
+    data: { userId: newUser.id, app: "hub-producao-conteudo", role: "COORDINATOR" },
   });
 
   return NextResponse.json({ success: true });
