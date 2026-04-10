@@ -56,9 +56,7 @@ export function Sidebar({ user }: SidebarProps) {
   const { data: session } = useSession()
   const [profileOpen, setProfileOpen] = useState(false)
 
-  const isInstructor =
-    session?.user?.role === "INSTRUCTOR" ||
-    (session?.user?.selectorRole === "INSTRUCTOR" && !session?.user?.role)
+  const isInstructor = session?.user?.role === "INSTRUCTOR"
   const canChangePassword = true // todos os usuários agora têm senha
 
   const visibleMainItems = isInstructor ? [seletorItem] : mainNavItems

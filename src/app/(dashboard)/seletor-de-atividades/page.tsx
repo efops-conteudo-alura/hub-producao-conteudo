@@ -3,11 +3,7 @@ import { auth } from "@/lib/auth";
 
 export default async function SeletorRootPage() {
   const session = await auth();
-  const selectorRole = session?.user?.selectorRole;
-  const role = session?.user?.role;
-
-  // Instrutor vai para tarefas (cobre role="INSTRUCTOR" legado e role="" novo)
-  const isInstructor = role === "INSTRUCTOR" || (selectorRole === "INSTRUCTOR" && !role);
+  const isInstructor = session?.user?.role === "INSTRUCTOR";
   if (isInstructor) {
     redirect("/seletor-de-atividades/tarefas");
   }

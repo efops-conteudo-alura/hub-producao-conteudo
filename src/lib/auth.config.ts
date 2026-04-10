@@ -11,11 +11,7 @@ export const authConfig: NextAuthConfig = {
       const pathname = request.nextUrl.pathname;
       // Usuário não autenticado → redireciona para login (padrão NextAuth)
       if (!session) return false;
-      // Instrutor só pode acessar o seletor
-      // Cobre: role="INSTRUCTOR" (novo) ou selectorRole="INSTRUCTOR" com role="" (compat legada)
-      const isInstructor =
-        session.user?.role === "INSTRUCTOR" ||
-        (session.user?.selectorRole === "INSTRUCTOR" && !session.user?.role);
+      const isInstructor = session.user?.role === "INSTRUCTOR";
       if (
         isInstructor &&
         !pathname.startsWith("/seletor-de-atividades") &&

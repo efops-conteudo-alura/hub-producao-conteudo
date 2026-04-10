@@ -86,11 +86,7 @@ export async function POST(req: NextRequest) {
   let instructorRole;
   try {
     instructorRole = await prisma.appRole.findFirst({
-      where: {
-        userId: instructorId,
-        role: "INSTRUCTOR",
-        app: { in: ["hub-producao-conteudo", "select-activity"] },
-      },
+      where: { userId: instructorId, app: "hub-producao-conteudo", role: "INSTRUCTOR" },
     });
   } catch (e) {
     console.error("[POST /api/seletor/submissoes] Erro ao buscar instrutor:", e);

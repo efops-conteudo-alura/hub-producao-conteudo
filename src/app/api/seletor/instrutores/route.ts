@@ -19,25 +19,12 @@ export async function GET() {
   }
 
   const appRoles = await prisma.appRole.findMany({
-    where: {
-      OR: [
-        { app: "hub-producao-conteudo", role: "INSTRUCTOR" },
-        { app: "select-activity", role: "INSTRUCTOR" },
-      ],
-    },
+    where: { app: "hub-producao-conteudo", role: "INSTRUCTOR" },
     include: { user: { select: { id: true, name: true, email: true, createdAt: true } } },
     orderBy: { createdAt: "desc" },
   });
 
-  // Deduplica por userId (um instrutor pode ter AppRole nos dois apps durante a migração)
-  const seen = new Set<string>();
-  const unique = appRoles.filter((r) => {
-    if (seen.has(r.user.id)) return false;
-    seen.add(r.user.id);
-    return true;
-  });
-
-  return NextResponse.json(unique.map((r) => ({
+  return NextResponse.json(appRoles.map((r) => ({
     id: r.user.id,
     name: r.user.name,
     email: r.user.email,
@@ -78,16 +65,11 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    // Verifica em ambos os apps (compat legada com select-activity)
-    const [existingHub, existingLegacy] = await Promise.all([
-      prisma.appRole.findUnique({ where: { userId_app: { userId: user.id, app: "hub-producao-conteudo" } } }),
-      prisma.appRole.findUnique({ where: { userId_app: { userId: user.id, app: "select-activity" } } }),
-    ]);
+    const existing = await prisma.appRole.findUnique({
+      where: { userId_app: { userId: user.id, app: "hub-producao-conteudo" } },
+    });
 
-    if (
-      existingHub?.role === "INSTRUCTOR" ||
-      existingLegacy?.role === "INSTRUCTOR"
-    ) {
+    if (existing?.role === "INSTRUCTOR") {
       return NextResponse.json({ error: "Instrutor já cadastrado." }, { status: 409 });
     }
 

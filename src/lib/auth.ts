@@ -20,25 +20,13 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         const user = await prisma.user.findUnique({ where: { email } });
         if (!user) return null;
 
-        // Busca roles em hub-producao-conteudo (principal) e select-activity (compat legada)
-        const [hubRole, legacyRole] = await Promise.all([
-          prisma.appRole.findUnique({
-            where: { userId_app: { userId: user.id, app: "hub-producao-conteudo" } },
-          }),
-          prisma.appRole.findUnique({
-            where: { userId_app: { userId: user.id, app: "select-activity" } },
-          }),
-        ]);
+        const hubRole = await prisma.appRole.findUnique({
+          where: { userId_app: { userId: user.id, app: "hub-producao-conteudo" } },
+        });
 
-        // Sem acesso em nenhum dos apps
-        if (!hubRole && !legacyRole) {
-          throw new Error("NoAccess");
-        }
+        if (!hubRole) throw new Error("NoAccess");
 
-        // Todos os usuários agora exigem senha (incluindo instrutores)
-        if (!user.password) {
-          throw new Error("NeedPassword");
-        }
+        if (!user.password) throw new Error("NeedPassword");
 
         const password = (credentials.password as string) ?? "";
         if (!password) return null;
@@ -46,20 +34,18 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         const passwordMatch = await bcrypt.compare(password, user.password);
         if (!passwordMatch) return null;
 
-        // selectorRole: prioriza hub-producao-conteudo (COORDINATOR/INSTRUCTOR),
-        // cai no legado (select-activity) se necessário
-        const selectorRoleFromHub =
-          hubRole?.role === "COORDINATOR" || hubRole?.role === "INSTRUCTOR"
+        // selectorRole: role do seletor (COORDINATOR ou INSTRUCTOR), usado para controle de acesso no módulo
+        const selectorRole =
+          hubRole.role === "COORDINATOR" || hubRole.role === "INSTRUCTOR"
             ? hubRole.role
-            : null;
-        const effectiveSelectorRole = selectorRoleFromHub ?? legacyRole?.role ?? undefined;
+            : undefined;
 
         return {
           id: user.id,
           email: user.email,
           name: user.name,
-          role: hubRole?.role ?? "",
-          selectorRole: effectiveSelectorRole,
+          role: hubRole.role,
+          selectorRole,
         };
       },
     }),
