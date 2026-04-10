@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { DropZone } from "../_components/DropZone";
 import { StepBar } from "../_components/StepBar";
+import { parseZipCourse } from "@/lib/parseZipCourse";
 import type { Course } from "@/types/course";
 
 const STEPS = ["Upload", "Instrutor", "Enviado"];
@@ -21,6 +22,9 @@ export default function UploadPage() {
   const [step, setStep] = useState(1);
   const [course, setCourse] = useState<Course | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  const [zipFile, setZipFile] = useState<File | null>(null);
+  const [parsingZip, setParsingZip] = useState(false);
 
   const [instructors, setInstructors] = useState<Instructor[]>([]);
   const [selectedInstructorId, setSelectedInstructorId] = useState("");
@@ -84,6 +88,7 @@ export default function UploadPage() {
 
   function handleFile(content: string) {
     setError(null);
+    setZipFile(null);
     try {
       const parsed: Record<string, unknown> = JSON.parse(content);
 
@@ -130,6 +135,28 @@ export default function UploadPage() {
     }
   }
 
+  function handleZipFile(file: File) {
+    setError(null);
+    setCourse(null);
+    setZipFile(file);
+  }
+
+  async function handleZipNext() {
+    if (!zipFile) return;
+    setParsingZip(true);
+    setError(null);
+    try {
+      const parsed = await parseZipCourse(zipFile);
+      setCourse(parsed);
+      setZipFile(null);
+      setStep(2);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Erro ao processar o ZIP.");
+    } finally {
+      setParsingZip(false);
+    }
+  }
+
   async function handleSend() {
     if (!course) return;
     setSending(true);
@@ -166,7 +193,7 @@ export default function UploadPage() {
 
         const created = await createRes.json();
         instructorId = created.id;
-        setInstructors((prev) => [{ id: created.id, name: created.name, email: created.email }, ...prev]);
+        setInstructors((prev: Instructor[]) => [{ id: created.id, name: created.name, email: created.email }, ...prev]);
       }
 
       if (!instructorId) {
@@ -216,13 +243,30 @@ export default function UploadPage() {
               Upload do arquivo
             </h1>
             <p className="text-muted-foreground">
-              Faça upload do arquivo JSON com todas as atividades do curso.
+              Faça upload do arquivo <span className="text-foreground font-medium">.json</span> com as atividades do curso,
+              ou de um <span className="text-foreground font-medium">.zip</span> com os arquivos .md das traduções.
             </p>
           </div>
 
           <div className="w-full">
-            <DropZone onFile={handleFile} onError={setError} />
+            <DropZone onFile={handleFile} onZipFile={handleZipFile} onError={setError} />
           </div>
+
+          {zipFile && (
+            <div className="w-full flex flex-col gap-3 bg-card border border-border rounded-xl px-4 py-3">
+              <p className="text-sm text-foreground">
+                Arquivo selecionado:{" "}
+                <span className="font-medium">{zipFile.name}</span>
+              </p>
+              <button
+                onClick={handleZipNext}
+                disabled={parsingZip}
+                className="w-full bg-primary hover:bg-primary/80 disabled:opacity-50 text-primary-foreground font-bold px-8 py-3 rounded-xl transition-colors"
+              >
+                {parsingZip ? "Processando ZIP..." : "Próximo →"}
+              </button>
+            </div>
+          )}
 
           {error && (
             <p className="text-destructive text-sm text-center bg-destructive/10 px-4 py-3 rounded-lg w-full">

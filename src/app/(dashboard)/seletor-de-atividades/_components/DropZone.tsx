@@ -4,18 +4,29 @@ import { useRef, useState } from "react";
 
 type Props = {
   onFile: (content: string, fileName: string) => void;
+  onZipFile?: (file: File) => void;
   onError: (message: string) => void;
 };
 
-export function DropZone({ onFile, onError }: Props) {
+export function DropZone({ onFile, onZipFile, onError }: Props) {
   const [highlighted, setHighlighted] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   function readFile(file: File) {
-    if (!file.name.endsWith(".json")) {
-      onError("Selecione um arquivo .json válido.");
+    if (file.name.endsWith(".zip")) {
+      if (!onZipFile) {
+        onError("Upload de ZIP não suportado aqui.");
+        return;
+      }
+      onZipFile(file);
       return;
     }
+
+    if (!file.name.endsWith(".json")) {
+      onError("Selecione um arquivo .json ou .zip válido.");
+      return;
+    }
+
     const reader = new FileReader();
     reader.onload = (e) => {
       const content = e.target?.result as string;
@@ -41,6 +52,17 @@ export function DropZone({ onFile, onError }: Props) {
     if (file) readFile(file);
   }
 
+  const acceptedFormats = onZipFile ? ".json,.zip" : ".json";
+  const formatLabel = onZipFile ? (
+    <>
+      <span className="text-primary font-semibold">.json</span>
+      {" ou "}
+      <span className="text-primary font-semibold">.zip</span>
+    </>
+  ) : (
+    <span className="text-primary font-semibold">.json</span>
+  );
+
   return (
     <div
       onDragOver={(e) => { e.preventDefault(); setHighlighted(true); }}
@@ -55,14 +77,14 @@ export function DropZone({ onFile, onError }: Props) {
     >
       <span className="text-3xl">📂</span>
       <p className="text-foreground/70 text-sm text-center px-4">
-        Arraste o arquivo <span className="text-primary font-semibold">.json</span> aqui
+        Arraste o arquivo {formatLabel} aqui
         <br />
         ou clique para procurar
       </p>
       <input
         ref={inputRef}
         type="file"
-        accept=".json"
+        accept={acceptedFormats}
         className="hidden"
         onChange={handleChange}
       />
