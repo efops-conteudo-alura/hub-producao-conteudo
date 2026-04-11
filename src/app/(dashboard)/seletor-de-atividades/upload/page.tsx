@@ -351,7 +351,7 @@ export default function UploadPage() {
             {mode === "new" && (
               <>
                 <p className="text-muted-foreground text-xs">
-                  O instrutor será cadastrado automaticamente. O login dele será feito apenas via e-mail.
+                  O instrutor será cadastrado automaticamente. No primeiro acesso, ele precisará definir uma senha pelo link recebido por e-mail.
                 </p>
                 <input
                   type="text"
