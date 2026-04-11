@@ -28,7 +28,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
         if (!user.password) throw new Error("NeedPassword");
 
-        const password = (credentials.password as string) ?? "";
+        const password = credentials.password as string;
         if (!password) return null;
 
         const passwordMatch = await bcrypt.compare(password, user.password);

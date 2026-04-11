@@ -34,7 +34,7 @@ export async function POST(req: NextRequest) {
     await prisma.appRole.upsert({
       where: { userId_app: { userId: existing.id, app: "hub-producao-conteudo" } },
       create: { userId: existing.id, app: "hub-producao-conteudo", role: "COORDINATOR" },
-      update: { role: "COORDINATOR" },
+      update: {},
     });
     return NextResponse.json({ success: true, existing: true });
   }
