@@ -1,12 +1,13 @@
-import { auth } from "@/lib/auth";
+import { auth } from "@/lib/auth"
+import { HomeDashboard } from "./_components/home-dashboard"
 
 export default async function HomePage() {
-  const session = await auth();
-
+  const session = await auth()
   return (
-    <div className="p-8">
-      <h1 className="hub-page-title mb-8">Hub de Produção de Conteúdo</h1>
-      <p className="text-muted-foreground">Olá, {session?.user?.name ?? "usuário"}.</p>
-    </div>
-  );
+    <HomeDashboard
+      userName={session?.user?.name ?? "usuário"}
+      userEmail={session?.user?.email ?? ""}
+      isAdmin={session?.user?.role === "ADMIN"}
+    />
+  )
 }
