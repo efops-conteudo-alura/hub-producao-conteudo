@@ -88,12 +88,12 @@ export default function PrimeiroAcessoPage() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="email">Email Alura</Label>
+              <Label htmlFor="email">Email</Label>
               <Input
                 id="email"
                 name="email"
                 type="email"
-                placeholder="seu@alura.com.br"
+                placeholder="seu@email.com"
                 required
               />
             </div>
