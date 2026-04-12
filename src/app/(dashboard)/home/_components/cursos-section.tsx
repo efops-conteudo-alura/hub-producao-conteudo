@@ -46,6 +46,9 @@ function GroupedTaskList({ tasks, emptyMessage, showDate = false }: { tasks: Cli
     if (!groups.has(key)) groups.set(key, [])
     groups.get(key)!.push(task)
   }
+  for (const group of groups.values()) {
+    group.sort((a, b) => a.name.localeCompare(b.name, "pt-BR"))
+  }
 
   return (
     <div className="space-y-4">
