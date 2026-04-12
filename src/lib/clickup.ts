@@ -1,4 +1,4 @@
-export const CLICKUP_LIST_CURSOS = "901311315105"
+export const CLICKUP_LISTS_CURSOS = ["901311315105", "901319822968"]
 export const CLICKUP_LIST_CONTRATOS = "901306782159"
 
 export type ClickUpAssignee = {
@@ -12,7 +12,8 @@ export type ClickUpTask = {
   name: string
   url: string
   due_date: string | null
-  status: { status: string; color: string }
+  orderindex: string
+  status: { status: string; color: string; type: string }
   assignees: ClickUpAssignee[]
 }
 
@@ -41,7 +42,14 @@ export async function fetchClickUpList(listId: string): Promise<ClickUpTask[]> {
     // retorna o que já foi buscado
   }
 
-  return allTasks
+  // Os nomes de status já têm número no prefixo ("1. backlog", "2. em planejamento"...)
+  // então ordenação alfabética = ordenação por status. Dentro do mesmo status, usa orderindex.
+  return allTasks.sort((a, b) => {
+    const sA = a.status.status.toLowerCase()
+    const sB = b.status.status.toLowerCase()
+    if (sA !== sB) return sA.localeCompare(sB)
+    return parseFloat(a.orderindex) - parseFloat(b.orderindex)
+  })
 }
 
 export function filterByAssignees(tasks: ClickUpTask[], emails: string[]): ClickUpTask[] {
@@ -52,14 +60,11 @@ export function filterByAssignees(tasks: ClickUpTask[], emails: string[]): Click
   )
 }
 
-// Exclui backlog e publicado — tudo mais está "em produção ativa"
-const CURSOS_EXCLUIR = ["1. backlog", "9. publicado"]
-
+// Exclui tipos "done" e "closed" — independente do nome do status em cada lista
 export function filterCursos(tasks: ClickUpTask[]): ClickUpTask[] {
-  return tasks.filter((t) => !CURSOS_EXCLUIR.includes(t.status.status.toLowerCase()))
+  return tasks.filter((t) => t.status.type !== "done" && t.status.type !== "closed")
 }
 
 export function filterContratos(tasks: ClickUpTask[]): ClickUpTask[] {
-  const closed = ["finalizado", "fechado"]
-  return tasks.filter((t) => !closed.includes(t.status.status.toLowerCase()))
+  return tasks.filter((t) => t.status.type !== "done" && t.status.type !== "closed")
 }

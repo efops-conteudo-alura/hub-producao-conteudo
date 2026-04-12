@@ -4,7 +4,7 @@ import {
   fetchClickUpList,
   filterByAssignees,
   filterCursos,
-  CLICKUP_LIST_CURSOS,
+  CLICKUP_LISTS_CURSOS,
 } from "@/lib/clickup"
 
 export async function GET(req: NextRequest) {
@@ -25,6 +25,7 @@ export async function GET(req: NextRequest) {
     }
   }
 
-  const tasks = await fetchClickUpList(CLICKUP_LIST_CURSOS)
+  const results = await Promise.all(CLICKUP_LISTS_CURSOS.map(fetchClickUpList))
+  const tasks = results.flat()
   return NextResponse.json(filterCursos(filterByAssignees(tasks, emails)))
 }
