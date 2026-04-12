@@ -20,20 +20,28 @@ export async function fetchClickUpList(listId: string): Promise<ClickUpTask[]> {
   const apiKey = process.env.CLICKUP_API_KEY
   if (!apiKey) return []
 
+  const allTasks: ClickUpTask[] = []
+  let page = 0
+  const MAX_PAGES = 10 // segurança: máx 1000 tasks
+
   try {
-    const res = await fetch(
-      `https://api.clickup.com/api/v2/list/${listId}/task?page=0&limit=100`,
-      {
-        headers: { Authorization: apiKey },
-        next: { revalidate: 300 },
-      }
-    )
-    if (!res.ok) return []
-    const data = await res.json()
-    return (data.tasks ?? []) as ClickUpTask[]
+    while (page < MAX_PAGES) {
+      const res = await fetch(
+        `https://api.clickup.com/api/v2/list/${listId}/task?page=${page}&limit=100`,
+        { headers: { Authorization: apiKey }, cache: "no-store" }
+      )
+      if (!res.ok) break
+      const data = await res.json()
+      const tasks = (data.tasks ?? []) as ClickUpTask[]
+      allTasks.push(...tasks)
+      if (data.last_page) break
+      page++
+    }
   } catch {
-    return []
+    // retorna o que já foi buscado
   }
+
+  return allTasks
 }
 
 export function filterByAssignees(tasks: ClickUpTask[], emails: string[]): ClickUpTask[] {
@@ -44,11 +52,14 @@ export function filterByAssignees(tasks: ClickUpTask[], emails: string[]): Click
   )
 }
 
+// Exclui backlog e publicado — tudo mais está "em produção ativa"
+const CURSOS_EXCLUIR = ["1. backlog", "9. publicado"]
+
 export function filterCursos(tasks: ClickUpTask[]): ClickUpTask[] {
-  return tasks.filter((t) => t.status.status.toLowerCase() === "ativo")
+  return tasks.filter((t) => !CURSOS_EXCLUIR.includes(t.status.status.toLowerCase()))
 }
 
 export function filterContratos(tasks: ClickUpTask[]): ClickUpTask[] {
-  const closed = ["feito", "fechado", "closed"]
+  const closed = ["finalizado", "fechado"]
   return tasks.filter((t) => !closed.includes(t.status.status.toLowerCase()))
 }
