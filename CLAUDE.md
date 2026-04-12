@@ -50,6 +50,8 @@ src/
       pesquisa-mercado/
       revisao-didatica/          → placeholder (não implementado)
       plano-de-estudos/          → placeholder (não implementado)
+      revisor-conteudo/          → módulo Revisor de Conteúdo (integração extensão Chrome)
+        _components/             → revisor-tabs, acoes-tab, distribuicao-tab, auditorias-list, credenciais-form, install-guide-dialog
       seletor-de-atividades/     → módulo Seletor de Atividades
         layout.tsx               → envolve com <AppProvider>
         page.tsx                 → redireciona por role (instrutor→tarefas, outros→submissoes)
@@ -57,13 +59,21 @@ src/
         instrutores/             → listagem de instrutores cadastrados
         tarefas/                 → visão do instrutor (lista + detalhe em 3 etapas)
         submissoes/              → visão do coordenador (lista + detalhe com diff e export)
-        _components/             → DropZone, StepBar, ExerciseCard, LessonAccordion
+        _components/             → DropZone, StepBar, ExerciseCard, LessonAccordion, GuideModal
     api/
+      auth/[...nextauth]/        → rotas dinâmicas do NextAuth
+      profile/                   → GET/POST perfil do usuário
       biblioteca-de-prompts/
       validacao-ementa/
+        ementas/                 → GET/POST + [id] GET/PUT/DELETE
+        validar/                 → POST (validação com IA)
       pesquisa-mercado/
+      revisor/
+        auditorias/              → GET/POST (extensão envia via POST; hub lista via GET)
+        config/                  → GET/PUT credenciais por usuário (GitHub, AWS, video-uploader)
+        forks/                   → POST cria fork de repositório na org alura-cursos via GitHub API
       seletor/
-        submissoes/              → GET/POST + [id] GET/PATCH/DELETE
+        submissoes/              → GET/POST + [id] GET/PUT/DELETE
         instrutores/             → GET/POST
         coordenadores/           → GET
         auth/
@@ -76,8 +86,11 @@ src/
   lib/
     auth.ts / auth.config.ts     → NextAuth (auth.config.ts é Edge-safe, sem Prisma)
     db.ts                        → cliente Prisma
+    crypto.ts                    → encrypt/decrypt AES-256-GCM (credenciais do revisor)
     storage.ts                   → helpers de sessionStorage (seletor)
     export.ts                    → exportSelectedCourse (download JSON)
+    parseZipCourse.ts            → parser de ZIP de cursos
+    utils.ts                     → utilitários gerais (cn, etc.)
   types/
     course.ts                    → tipos do seletor: Course, Lesson, Exercise, Alternative
     next-auth.d.ts               → extensão dos tipos do NextAuth
@@ -171,7 +184,7 @@ Cada usuário tem zero ou mais `AppRole` no banco. Sem AppRole para um app = sem
 | Seletor de Atividades | `/seletor-de-atividades` | ✅ Implementado |
 | Revisão Didática | `/revisao-didatica` | 🔲 Placeholder |
 | Plano de Estudos | `/plano-de-estudos` | 🔲 Placeholder |
-| Revisor de Conteúdo | `/revisor-conteudo` | 🔲 Estrutura criada — aguardando migration |
+| Revisor de Conteúdo | `/revisor-conteudo` | 🔲 UI + API criadas — aguardando migration no hub-efops |
 
 ---
 
@@ -189,12 +202,13 @@ O módulo `/revisor-conteudo` é o "cérebro" da extensão `alura-revisor-conteu
 
 - `GET/POST /api/revisor/auditorias` — a extensão envia auditorias via POST; hub lista via GET
 - `GET/PUT /api/revisor/config` — gerenciamento de credenciais por usuário (GitHub, AWS, video-uploader)
+- `POST /api/revisor/forks` — cria fork de repositório na org `alura-cursos` via GitHub API (usa token do usuário)
 
 ### Pendências antes de funcionar em produção
 
 1. **Migration no hub-efops**: os models `RevisorAuditoria` e `UserCredential` estão no `schema.prisma` mas ainda não foram migrados. Até isso acontecer, as rotas retornam `[]` ou `503` graciosamente.
 2. **AppRole `revisor-conteudo:USER`**: definir e adicionar ao fluxo de cadastro (`/api/seletor/auth/register`) quando a integração for completa.
-3. **Criptografia das credenciais**: o campo `value` em `UserCredential` está armazenando texto plano por enquanto. Implementar criptografia AES-256-GCM (mesmo padrão do `SystemConfig`) antes de ir a produção.
+3. ~~**Criptografia das credenciais**~~ — já implementada em `src/lib/crypto.ts` (AES-256-GCM). O `config` route usa `encrypt`/`decrypt` ao salvar/ler credenciais.
 4. **ID da extensão**: substituir `EXTENSAO_ID_AQUI` no `public/update.xml` pelo ID real.
 
 ---
