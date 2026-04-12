@@ -74,7 +74,7 @@ export default function CriarSenhaPage() {
                 id="email"
                 name="email"
                 type="email"
-                placeholder="seu@alura.com.br"
+                placeholder="seu@email.com"
                 required
               />
             </div>
