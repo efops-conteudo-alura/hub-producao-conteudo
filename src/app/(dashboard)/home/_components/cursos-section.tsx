@@ -1,5 +1,6 @@
 "use client"
 
+import Link from "next/link"
 import { ExternalLink } from "lucide-react"
 import type { ClickUpTask } from "@/lib/clickup"
 
@@ -27,6 +28,16 @@ export function ContratosSection({ tasks, loading }: ContratosProps) {
     <div>
       <h2 className="text-base font-semibold mb-3">Contratos</h2>
       <TaskList tasks={tasks} loading={loading} emptyMessage="Nenhum contrato em aberto." />
+      {!loading && (
+        <div className="mt-3">
+          <Link
+            href="/contratos"
+            className="text-xs text-muted-foreground hover:text-foreground underline underline-offset-2 transition-colors"
+          >
+            Ver módulo de contratos →
+          </Link>
+        </div>
+      )}
     </div>
   )
 }

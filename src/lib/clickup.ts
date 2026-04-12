@@ -12,9 +12,24 @@ export type ClickUpTask = {
   name: string
   url: string
   due_date: string | null
+  date_updated: string
   orderindex: string
   status: { status: string; color: string; type: string; orderindex: number }
   assignees: ClickUpAssignee[]
+}
+
+export type ClickUpComment = {
+  id: string
+  comment_text: string
+  user: { username: string; email: string }
+  date: string
+}
+
+export type ClickUpStatus = {
+  status: string
+  color: string
+  type: string
+  orderindex: number
 }
 
 export async function fetchClickUpList(listId: string): Promise<ClickUpTask[]> {
@@ -66,4 +81,37 @@ export function filterCursos(tasks: ClickUpTask[]): ClickUpTask[] {
 
 export function filterContratos(tasks: ClickUpTask[]): ClickUpTask[] {
   return tasks.filter((t) => t.status.type !== "done" && t.status.type !== "closed")
+}
+
+export async function fetchListStatuses(listId: string): Promise<ClickUpStatus[]> {
+  const apiKey = process.env.CLICKUP_API_KEY
+  if (!apiKey) return []
+  try {
+    const res = await fetch(`https://api.clickup.com/api/v2/list/${listId}`, {
+      headers: { Authorization: apiKey },
+      next: { revalidate: 3600 }, // statuses mudam raramente
+    })
+    if (!res.ok) return []
+    const data = await res.json()
+    const statuses = (data.statuses ?? []) as ClickUpStatus[]
+    return statuses.sort((a, b) => a.orderindex - b.orderindex)
+  } catch {
+    return []
+  }
+}
+
+export async function fetchTaskComments(taskId: string): Promise<ClickUpComment[]> {
+  const apiKey = process.env.CLICKUP_API_KEY
+  if (!apiKey) return []
+  try {
+    const res = await fetch(`https://api.clickup.com/api/v2/task/${taskId}/comment`, {
+      headers: { Authorization: apiKey },
+      cache: "no-store",
+    })
+    if (!res.ok) return []
+    const data = await res.json()
+    return (data.comments ?? []) as ClickUpComment[]
+  } catch {
+    return []
+  }
 }
