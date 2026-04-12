@@ -41,14 +41,16 @@ export function ContratosDashboard({ userId, userEmail, isAdmin }: Props) {
       setSelectedEmails([userEmail])
       return
     }
-    fetch("/api/seletor/coordenadores")
+    const controller = new AbortController()
+    fetch("/api/seletor/coordenadores", { signal: controller.signal })
       .then((r) => r.json())
       .then((data: Coordenador[]) => {
         setCoordenadores(data)
         setSelectedEmails(data.map((c) => c.email ?? "").filter(Boolean))
       })
-      .catch(() => {})
+      .catch((err) => { if (err.name !== "AbortError") setCoordenadores([]) })
       .finally(() => setLoadingCoords(false))
+    return () => controller.abort()
   }, [isAdmin, userEmail])
 
   // Busca tasks e novidades quando emails mudam

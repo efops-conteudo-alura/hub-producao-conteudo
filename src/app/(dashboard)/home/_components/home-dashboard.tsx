@@ -52,20 +52,24 @@ export function HomeDashboard({ userName, userEmail, isAdmin }: Props) {
 
   const [cursosTasks, setCursosTasks] = useState<ClickUpTask[]>([])
   const [contratosTasks, setContratosTasks] = useState<ClickUpTask[]>([])
+  const [submissoesPendentes, setSubmissoesPendentes] = useState(0)
+  const [submissoesRevisadas, setSubmissoesRevisadas] = useState(0)
   const [tasksLoading, setTasksLoading] = useState(false)
 
   // Busca coordenadores (admin only)
   useEffect(() => {
     if (!isAdmin) return
+    const controller = new AbortController()
     setCoordLoading(true)
-    fetch("/api/home/coordenadores")
+    fetch("/api/home/coordenadores", { signal: controller.signal })
       .then((r) => r.json())
       .then((data: Coordenador[]) => {
         setCoordenadores(data)
         setSelectedEmails(data.map((c) => c.email ?? "").filter(Boolean))
       })
-      .catch(() => setCoordenadores([]))
+      .catch((err) => { if (err.name !== "AbortError") setCoordenadores([]) })
       .finally(() => setCoordLoading(false))
+    return () => controller.abort()
   }, [isAdmin])
 
   // Busca tasks quando os emails selecionados mudam
@@ -84,10 +88,13 @@ export function HomeDashboard({ userName, userEmail, isAdmin }: Props) {
     Promise.all([
       fetch(`/api/home/cursos?${param}`).then((r) => r.json()),
       fetch(`/api/home/contratos?${param}`).then((r) => r.json()),
+      fetch(`/api/home/submissoes?${param}`).then((r) => r.json()),
     ])
-      .then(([cursos, contratos]) => {
+      .then(([cursos, contratos, submissoes]) => {
         setCursosTasks(Array.isArray(cursos) ? cursos : [])
         setContratosTasks(Array.isArray(contratos) ? contratos : [])
+        setSubmissoesPendentes(submissoes?.pendentes ?? 0)
+        setSubmissoesRevisadas(submissoes?.revisadas ?? 0)
       })
       .catch(() => {
         setCursosTasks([])
@@ -129,6 +136,8 @@ export function HomeDashboard({ userName, userEmail, isAdmin }: Props) {
       <StatsRow
         cursosTasks={cursosTasks}
         contratosTasks={contratosTasks}
+        submissoesPendentes={submissoesPendentes}
+        submissoesRevisadas={submissoesRevisadas}
         loading={tasksLoading}
       />
 

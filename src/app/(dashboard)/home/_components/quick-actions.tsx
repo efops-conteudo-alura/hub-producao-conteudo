@@ -1,12 +1,12 @@
 import Link from "next/link"
-import { FileCheck, TrendingUp, ClipboardList, BookOpen } from "lucide-react"
+import { FileCheck, TrendingUp, BookOpen, ScanText } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { buttonVariants } from "@/components/ui/button"
 
 const ACTIONS = [
   { label: "Validar ementa", href: "/validacao-ementa", icon: FileCheck },
   { label: "Pesquisar mercado", href: "/pesquisa-mercado", icon: TrendingUp },
-  { label: "Seletor de atividades", href: "/seletor-de-atividades", icon: ClipboardList },
+  { label: "Revisor de conteúdo", href: "/revisor-conteudo", icon: ScanText },
   { label: "Biblioteca de prompts", href: "/biblioteca-de-prompts", icon: BookOpen },
 ]
 
