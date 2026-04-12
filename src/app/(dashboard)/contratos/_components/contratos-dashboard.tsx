@@ -8,7 +8,7 @@ import { NovidadesSection } from "./novidades-section"
 import { ContratosList } from "./contratos-list"
 
 // URL do formulário do ClickUp para nova demanda
-const NOVA_DEMANDA_URL = "https://forms.clickup.com/901306782159"
+const NOVA_DEMANDA_URL = "https://forms.clickup.com/3148001/f/30271-162093/X2P2ZLK8Y0VFNUG7J8"
 
 interface Props {
   userId: string

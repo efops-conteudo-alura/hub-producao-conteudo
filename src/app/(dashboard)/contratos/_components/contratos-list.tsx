@@ -39,19 +39,6 @@ export function ContratosList({ tasks, statuses, loading }: Props) {
         const statusMeta = groupTasks[0].status
         return (
           <div key={statusName}>
-            <div className="flex items-center gap-2 mb-3">
-              <span
-                className="text-xs px-2.5 py-1 rounded-full font-semibold"
-                style={{
-                  backgroundColor: statusMeta.color + "33",
-                  color: statusMeta.color,
-                }}
-              >
-                {statusName}
-              </span>
-              <span className="text-xs text-muted-foreground">{groupTasks.length}</span>
-            </div>
-
             <ul className="space-y-2">
               {groupTasks.map((task) => (
                 <li

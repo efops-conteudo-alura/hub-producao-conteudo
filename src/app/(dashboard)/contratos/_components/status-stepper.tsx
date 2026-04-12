@@ -25,34 +25,37 @@ export function StatusStepper({ statuses, current }: Props) {
 
         return (
           <div key={s.status} className="flex items-center flex-1 min-w-0">
-            {/* Bolinha */}
-            <div className="shrink-0 relative group">
+            {/* Bolinha + label */}
+            <div className="shrink-0 flex flex-col items-center gap-1">
               <div
-                className={`w-3 h-3 rounded-full border-2 transition-colors ${
+                className="w-3 h-3 rounded-full border-2 transition-colors"
+                style={
                   isActive
-                    ? "border-current bg-current"
+                    ? { borderColor: s.color, backgroundColor: s.color }
                     : isDone
-                    ? "border-current bg-current opacity-50"
-                    : "border-muted-foreground/30 bg-background"
-                }`}
-                style={isActive || isDone ? { borderColor: s.color, backgroundColor: isActive ? s.color : s.color + "80" } : {}}
-                title={s.status}
+                    ? { borderColor: s.color, backgroundColor: s.color + "80" }
+                    : { borderColor: "var(--muted-foreground)", opacity: 0.3 }
+                }
               />
-              {/* Tooltip */}
-              <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 hidden group-hover:block z-10 pointer-events-none">
-                <div className="bg-popover border rounded px-2 py-1 text-xs whitespace-nowrap shadow-md">
-                  {s.status}
-                </div>
-              </div>
+              <span
+                className={`text-[9px] leading-tight text-center max-w-[52px] ${
+                  isActive ? "font-semibold" : "text-muted-foreground/60"
+                }`}
+                style={isActive ? { color: s.color } : {}}
+              >
+                {s.status}
+              </span>
             </div>
 
             {/* Linha conectora */}
             {!isLast && (
               <div
-                className={`h-0.5 flex-1 mx-0.5 ${
-                  isDone || isActive ? "opacity-40" : "bg-muted-foreground/20"
-                }`}
-                style={isDone || isActive ? { backgroundColor: s.color } : {}}
+                className="h-0.5 flex-1 mx-0.5 mb-4"
+                style={
+                  isDone || isActive
+                    ? { backgroundColor: s.color, opacity: 0.4 }
+                    : { backgroundColor: "var(--muted-foreground)", opacity: 0.2 }
+                }
               />
             )}
           </div>
