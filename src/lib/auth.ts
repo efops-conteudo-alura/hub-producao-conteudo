@@ -34,18 +34,11 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         const passwordMatch = await bcrypt.compare(password, user.password);
         if (!passwordMatch) return null;
 
-        // selectorRole: role do seletor (COORDINATOR ou INSTRUCTOR), usado para controle de acesso no módulo
-        const selectorRole =
-          hubRole.role === "COORDINATOR" || hubRole.role === "INSTRUCTOR"
-            ? hubRole.role
-            : undefined;
-
         return {
           id: user.id,
           email: user.email,
           name: user.name,
           role: hubRole.role,
-          selectorRole,
         };
       },
     }),

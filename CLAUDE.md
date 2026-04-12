@@ -73,7 +73,7 @@ src/
         config/                  → GET/PUT credenciais por usuário (GitHub, AWS, video-uploader)
         forks/                   → POST cria fork de repositório na org alura-cursos via GitHub API
       seletor/
-        submissoes/              → GET/POST + [id] GET/PUT/DELETE
+        submissoes/              → GET/POST + [id] GET/PATCH/DELETE
         instrutores/             → GET/POST
         coordenadores/           → GET
         auth/
@@ -126,8 +126,7 @@ Este app é parte de um ecossistema que compartilha o mesmo banco. O **hub-efops
 | Identificador (app) | Projeto | Roles disponíveis |
 |---|---|---|
 | `hub-efops` | projeto-hub-efops | `ADMIN`, `USER` |
-| `hub-producao-conteudo` | este projeto | `ADMIN`, `USER` |
-| `select-activity` | (embutido neste projeto) | `ADMIN`, `COORDINATOR`, `INSTRUCTOR` |
+| `hub-producao-conteudo` | este projeto | `ADMIN`, `USER`, `COORDINATOR`, `INSTRUCTOR` |
 | `revisor-conteudo` | (embutido neste projeto — extensão Chrome) | `USER` |
 
 ### AppRole — como o acesso é controlado
@@ -149,24 +148,20 @@ Cada usuário tem zero ou mais `AppRole` no banco. Sem AppRole para um app = sem
 
 ### Hub de Produção de Conteúdo
 - App: `hub-producao-conteudo`
-- Roles: `USER` | `ADMIN`
-- `session.user.role` — role neste app
-
-### Seletor de Atividades
-- App: `select-activity`
-- Roles: `INSTRUCTOR` | `COORDINATOR` | `ADMIN`
-- `session.user.selectorRole` — role no seletor
+- Roles: `ADMIN` | `COORDINATOR` | `INSTRUCTOR` | `USER`
+- `session.user.role` — único campo de role na sessão
 
 ### Comportamento por tipo de usuário
-| Tipo | `role` | `selectorRole` | Acesso |
-|---|---|---|---|
-| Admin | `ADMIN` | — | Tudo |
-| Coordenador (hub-producao) | `USER` | `COORDINATOR` | Tudo do hub + seletor como coordenador |
-| Instrutor | `""` / ausente | `INSTRUCTOR` | Apenas `/seletor-de-atividades/tarefas` |
+| Tipo | `role` | Acesso |
+|---|---|---|
+| Admin | `ADMIN` | Tudo |
+| Coordenador | `COORDINATOR` | Tudo do hub + seletor como coordenador |
+| Instrutor | `INSTRUCTOR` | Apenas `/seletor-de-atividades/tarefas` |
+| Usuário comum | `USER` | Módulos do hub (sem seletor) |
 
 - Instrutores são redirecionados para `/seletor-de-atividades/tarefas` pelo callback `authorized` em `auth.config.ts` (Edge)
-- O helper `getSelectorRole(session)` nas API routes: se `role === "ADMIN"` retorna `"ADMIN"`, senão retorna `selectorRole`
 - Sidebar oculta módulos do hub para instrutores (apenas o item do seletor é exibido)
+- Nas API routes usar `session.user.role` diretamente — não há mais `selectorRole` nem `getSelectorRole()`
 
 ### Acesso ao seletor para coordenadores sem conta
 1. Coordenador acessa `/primeiro-acesso` → cria conta → recebe `hub-producao-conteudo:USER` + `select-activity:COORDINATOR`

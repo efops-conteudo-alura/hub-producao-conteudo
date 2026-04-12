@@ -1,30 +1,22 @@
 import { NextRequest, NextResponse } from "next/server";
-import type { Session } from "next-auth";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/db";
-
-function getSelectorRole(session: Session | null): string {
-  if (!session?.user) return "";
-  // ADMIN do hub-producao tem acesso total
-  if (session.user.role === "ADMIN") return "ADMIN";
-  return session.user.selectorRole ?? "";
-}
 
 export async function GET() {
   const session = await auth();
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const userId = session.user.id;
-  const selectorRole = getSelectorRole(session);
+  const role = session.user.role;
 
-  if (!selectorRole) {
+  if (!role) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
   const where =
-    selectorRole === "INSTRUCTOR"
+    role === "INSTRUCTOR"
       ? { instructorId: userId }
-      : selectorRole === "ADMIN"
+      : role === "ADMIN"
       ? {}
       : { coordinatorId: userId };
 
@@ -60,8 +52,8 @@ export async function POST(req: NextRequest) {
   const session = await auth();
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const selectorRole = getSelectorRole(session);
-  if (selectorRole !== "COORDINATOR" && selectorRole !== "ADMIN") {
+  const role = session.user.role;
+  if (role !== "COORDINATOR" && role !== "ADMIN") {
     return NextResponse.json({ error: "Apenas coordenadores podem criar tarefas." }, { status: 403 });
   }
 
