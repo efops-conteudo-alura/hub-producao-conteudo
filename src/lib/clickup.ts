@@ -13,7 +13,7 @@ export type ClickUpTask = {
   url: string
   due_date: string | null
   orderindex: string
-  status: { status: string; color: string; type: string }
+  status: { status: string; color: string; type: string; orderindex: number }
   assignees: ClickUpAssignee[]
 }
 
@@ -42,12 +42,11 @@ export async function fetchClickUpList(listId: string): Promise<ClickUpTask[]> {
     // retorna o que já foi buscado
   }
 
-  // Os nomes de status já têm número no prefixo ("1. backlog", "2. em planejamento"...)
-  // então ordenação alfabética = ordenação por status. Dentro do mesmo status, usa orderindex.
+  // Usa o orderindex do próprio status (ordem configurada no ClickUp).
+  // Dentro do mesmo status, ordena pelo orderindex da tarefa.
   return allTasks.sort((a, b) => {
-    const sA = a.status.status.toLowerCase()
-    const sB = b.status.status.toLowerCase()
-    if (sA !== sB) return sA.localeCompare(sB)
+    const sDiff = a.status.orderindex - b.status.orderindex
+    if (sDiff !== 0) return sDiff
     return parseFloat(a.orderindex) - parseFloat(b.orderindex)
   })
 }
