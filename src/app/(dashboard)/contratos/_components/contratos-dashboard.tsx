@@ -60,13 +60,15 @@ export function ContratosDashboard({ userId, userEmail, isAdmin }: Props) {
       return
     }
 
-    const emailsParam = selectedEmails.join(",")
+    const allCoordEmails = coordenadores.map((c) => c.email ?? "").filter(Boolean)
+    const isAllSelected = isAdmin && allCoordEmails.length > 0 && allCoordEmails.every((e) => selectedEmails.includes(e))
+    const param = isAllSelected ? "all=true" : `emails=${encodeURIComponent(selectedEmails.join(","))}`
     setLoading(true)
 
     Promise.all([
-      fetch(`/api/contratos?emails=${encodeURIComponent(emailsParam)}`).then((r) => r.json()),
+      fetch(`/api/contratos?${param}`).then((r) => r.json()),
       fetch("/api/contratos/statuses").then((r) => r.json()),
-      fetch(`/api/contratos/novidades?emails=${encodeURIComponent(emailsParam)}&since=${lastSeen}`).then((r) => r.json()),
+      fetch(`/api/contratos/novidades?${param}&since=${lastSeen}`).then((r) => r.json()),
     ])
       .then(([tasksData, statusesData, novidadesData]) => {
         setTasks(Array.isArray(tasksData) ? tasksData : [])
