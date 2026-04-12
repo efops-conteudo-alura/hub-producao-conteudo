@@ -11,7 +11,7 @@ export async function POST(req: NextRequest) {
   }
   const { email, name, password } = body;
 
-  if (!email || !name || !password) {
+  if (!email || !name?.trim() || !password) {
     return NextResponse.json({ error: "Dados incompletos." }, { status: 400 });
   }
   if (password.length < 8) {
@@ -20,33 +20,44 @@ export async function POST(req: NextRequest) {
 
   const normalizedEmail = email.trim().toLowerCase();
 
-  const allowed = await prisma.allowedEmail.findUnique({ where: { email: normalizedEmail } });
-  if (!allowed) {
-    return NextResponse.json(
-      { error: "Email não autorizado. Contacte um administrador do hub." },
-      { status: 403 }
-    );
-  }
+  try {
+    const allowed = await prisma.allowedEmail.findUnique({ where: { email: normalizedEmail } });
+    if (!allowed) {
+      return NextResponse.json(
+        { error: "Email não autorizado. Contacte um administrador do hub." },
+        { status: 403 }
+      );
+    }
 
-  const existing = await prisma.user.findUnique({ where: { email: normalizedEmail } });
-  if (existing) {
-    // Usuário já existe: garante AppRole como COORDINATOR no hub-producao-conteudo
-    await prisma.appRole.upsert({
-      where: { userId_app: { userId: existing.id, app: "hub-producao-conteudo" } },
-      create: { userId: existing.id, app: "hub-producao-conteudo", role: "COORDINATOR" },
-      update: {},
+    const existing = await prisma.user.findUnique({ where: { email: normalizedEmail } });
+    if (existing) {
+      // Usuário já existe: garante AppRole como COORDINATOR no hub-producao-conteudo
+      await prisma.appRole.upsert({
+        where: { userId_app: { userId: existing.id, app: "hub-producao-conteudo" } },
+        create: { userId: existing.id, app: "hub-producao-conteudo", role: "COORDINATOR" },
+        update: {},
+      });
+
+      // Se a conta não tem senha, aproveita a senha fornecida no formulário
+      if (!existing.password) {
+        const hashed = await bcrypt.hash(password, 12);
+        await prisma.user.update({ where: { id: existing.id }, data: { password: hashed } });
+      }
+
+      return NextResponse.json({ success: true, existing: true });
+    }
+
+    const hashed = await bcrypt.hash(password, 12);
+    const newUser = await prisma.user.create({
+      data: { email: normalizedEmail, name: name.trim(), password: hashed },
     });
-    return NextResponse.json({ success: true, existing: true });
+
+    await prisma.appRole.create({
+      data: { userId: newUser.id, app: "hub-producao-conteudo", role: "COORDINATOR" },
+    });
+
+    return NextResponse.json({ success: true });
+  } catch {
+    return NextResponse.json({ error: "Erro interno. Tente novamente." }, { status: 500 });
   }
-
-  const hashed = await bcrypt.hash(password, 12);
-  const newUser = await prisma.user.create({
-    data: { email: normalizedEmail, name: name.trim(), password: hashed },
-  });
-
-  await prisma.appRole.create({
-    data: { userId: newUser.id, app: "hub-producao-conteudo", role: "COORDINATOR" },
-  });
-
-  return NextResponse.json({ success: true });
 }

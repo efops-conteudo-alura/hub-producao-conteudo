@@ -19,28 +19,33 @@ export async function POST(req: NextRequest) {
   }
 
   const normalizedEmail = email.trim().toLowerCase();
-  const user = await prisma.user.findUnique({ where: { email: normalizedEmail } });
 
-  if (!user) {
-    return NextResponse.json({ error: "Conta não encontrada." }, { status: 404 });
+  try {
+    const user = await prisma.user.findUnique({ where: { email: normalizedEmail } });
+
+    if (!user) {
+      return NextResponse.json({ error: "Conta não encontrada." }, { status: 404 });
+    }
+
+    const appRole = await prisma.appRole.findUnique({
+      where: { userId_app: { userId: user.id, app: "hub-producao-conteudo" } },
+    });
+    if (!appRole) {
+      return NextResponse.json({ error: "Conta não encontrada." }, { status: 404 });
+    }
+
+    if (user.password) {
+      return NextResponse.json(
+        { error: "Esta conta já tem senha. Entre normalmente pelo login." },
+        { status: 400 }
+      );
+    }
+
+    const hashed = await bcrypt.hash(password, 12);
+    await prisma.user.update({ where: { id: user.id }, data: { password: hashed } });
+
+    return NextResponse.json({ success: true });
+  } catch {
+    return NextResponse.json({ error: "Erro interno. Tente novamente." }, { status: 500 });
   }
-
-  const appRole = await prisma.appRole.findUnique({
-    where: { userId_app: { userId: user.id, app: "hub-producao-conteudo" } },
-  });
-  if (!appRole) {
-    return NextResponse.json({ error: "Conta não encontrada." }, { status: 404 });
-  }
-
-  if (user.password) {
-    return NextResponse.json(
-      { error: "Esta conta já tem senha. Entre normalmente pelo login." },
-      { status: 400 }
-    );
-  }
-
-  const hashed = await bcrypt.hash(password, 12);
-  await prisma.user.update({ where: { id: user.id }, data: { password: hashed } });
-
-  return NextResponse.json({ success: true });
 }
