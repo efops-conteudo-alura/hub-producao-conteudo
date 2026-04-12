@@ -22,17 +22,25 @@ export async function GET(req: NextRequest) {
   const sinceParam = req.nextUrl.searchParams.get("since")
   const since = sinceParam ? parseInt(sinceParam, 10) : Date.now() - 30 * 24 * 60 * 60 * 1000
 
-  if (emails.length === 0) return NextResponse.json({ tasks: [], comments: {} })
+  const all = req.nextUrl.searchParams.get("all") === "true"
 
-  if (session.user.role !== "ADMIN") {
+  if (all && session.user.role !== "ADMIN") {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+  }
+
+  if (!all && emails.length === 0) return NextResponse.json({ tasks: [], comments: {} })
+
+  if (!all && session.user.role !== "ADMIN") {
     const userEmail = session.user.email?.toLowerCase() ?? ""
     if (!emails.every((e) => e.toLowerCase() === userEmail)) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 })
     }
   }
 
-  const allTasks = await fetchClickUpList(CLICKUP_LIST_CONTRATOS)
-  const myTasks = filterContratos(filterByAssignees(allTasks, emails))
+  const allTasks = await fetchClickUpList(CLICKUP_LIST_CONTRATOS, { includeInstructor: true })
+  const myTasks = all
+    ? filterContratos(allTasks)
+    : filterContratos(filterByAssignees(allTasks, emails))
 
   // Filtra apenas tasks com date_updated após o since
   const updatedTasks = myTasks.filter(

@@ -1,8 +1,36 @@
 "use client"
 
-import { ExternalLink } from "lucide-react"
+import { ExternalLink, AlertCircle, Clock } from "lucide-react"
 import type { ClickUpTask, ClickUpStatus } from "@/lib/clickup"
 import { StatusStepper } from "./status-stepper"
+
+function DueDate({ dueDateMs }: { dueDateMs: string }) {
+  const due = Number(dueDateMs)
+  const now = Date.now()
+  const sevenDays = 7 * 24 * 60 * 60 * 1000
+  const isOverdue = due < now
+  const isSoon = !isOverdue && due - now <= sevenDays
+
+  const label = new Date(due).toLocaleDateString("pt-BR")
+
+  if (isOverdue) {
+    return (
+      <span className="inline-flex items-center gap-1 text-xs font-medium text-destructive">
+        <AlertCircle className="w-3 h-3" />
+        {label}
+      </span>
+    )
+  }
+  if (isSoon) {
+    return (
+      <span className="inline-flex items-center gap-1 text-xs font-medium text-orange-500">
+        <Clock className="w-3 h-3" />
+        {label}
+      </span>
+    )
+  }
+  return <span className="text-xs text-muted-foreground">{label}</span>
+}
 
 interface Props {
   tasks: ClickUpTask[]
@@ -46,7 +74,18 @@ export function ContratosList({ tasks, statuses, loading }: Props) {
                   className="rounded-md border bg-card px-3 py-3"
                 >
                   <div className="flex items-start justify-between gap-3 mb-3">
-                    <span className="text-sm font-medium leading-snug">{task.name}</span>
+                    <div className="min-w-0">
+                      <span className="text-sm font-medium leading-snug block">{task.name}</span>
+                      <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+                        {task.instructor && (
+                          <span className="text-xs text-muted-foreground">{task.instructor}</span>
+                        )}
+                        {task.instructor && task.due_date && (
+                          <span className="text-xs text-muted-foreground">·</span>
+                        )}
+                        {task.due_date && <DueDate dueDateMs={task.due_date} />}
+                      </div>
+                    </div>
                     <a
                       href={task.url}
                       target="_blank"

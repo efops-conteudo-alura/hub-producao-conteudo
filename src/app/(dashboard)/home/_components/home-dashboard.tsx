@@ -76,12 +76,14 @@ export function HomeDashboard({ userName, userEmail, isAdmin }: Props) {
       return
     }
 
-    const emailParam = selectedEmails.join(",")
+    const allCoordEmails = coordenadores.map((c) => c.email ?? "").filter(Boolean)
+    const isAllSelected = isAdmin && allCoordEmails.length > 0 && allCoordEmails.every((e) => selectedEmails.includes(e))
+    const param = isAllSelected ? "all=true" : `emails=${encodeURIComponent(selectedEmails.join(","))}`
     setTasksLoading(true)
 
     Promise.all([
-      fetch(`/api/home/cursos?emails=${encodeURIComponent(emailParam)}`).then((r) => r.json()),
-      fetch(`/api/home/contratos?emails=${encodeURIComponent(emailParam)}`).then((r) => r.json()),
+      fetch(`/api/home/cursos?${param}`).then((r) => r.json()),
+      fetch(`/api/home/contratos?${param}`).then((r) => r.json()),
     ])
       .then(([cursos, contratos]) => {
         setCursosTasks(Array.isArray(cursos) ? cursos : [])

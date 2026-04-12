@@ -16,7 +16,10 @@ export type ClickUpTask = {
   orderindex: string
   status: { status: string; color: string; type: string; orderindex: number }
   assignees: ClickUpAssignee[]
+  instructor?: string
 }
+
+const INSTRUTOR_FIELD_ID = "4d18c8fb-3a23-4107-806e-0c9518cd2263"
 
 export type ClickUpComment = {
   id: string
@@ -32,14 +35,16 @@ export type ClickUpStatus = {
   orderindex: number
 }
 
-export async function fetchClickUpList(listId: string): Promise<ClickUpTask[]> {
+export async function fetchClickUpList(
+  listId: string,
+  options?: { includeInstructor?: boolean }
+): Promise<ClickUpTask[]> {
   const apiKey = process.env.CLICKUP_API_KEY
   if (!apiKey) return []
 
   const allTasks: ClickUpTask[] = []
   let page = 0
   const MAX_PAGES = 10 // segurança: máx 1000 tasks
-
   try {
     while (page < MAX_PAGES) {
       const res = await fetch(
@@ -48,8 +53,21 @@ export async function fetchClickUpList(listId: string): Promise<ClickUpTask[]> {
       )
       if (!res.ok) break
       const data = await res.json()
-      const tasks = (data.tasks ?? []) as ClickUpTask[]
-      allTasks.push(...tasks)
+      const rawTasks = (data.tasks ?? []) as Array<ClickUpTask & {
+        custom_fields?: Array<{ id: string; value: unknown }>
+      }>
+
+      for (const raw of rawTasks) {
+        const task: ClickUpTask = { ...raw }
+        if (raw.custom_fields) {
+          const field = raw.custom_fields.find((f) => f.id === INSTRUTOR_FIELD_ID)
+          if (field?.value && typeof field.value === "string") {
+            task.instructor = field.value
+          }
+        }
+        allTasks.push(task)
+      }
+
       if (data.last_page) break
       page++
     }

@@ -11,6 +11,14 @@ export async function GET(req: NextRequest) {
   const session = await auth()
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
 
+  const all = req.nextUrl.searchParams.get("all") === "true"
+
+  if (all) {
+    if (session.user.role !== "ADMIN") return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+    const results = await Promise.all(CLICKUP_LISTS_CURSOS.map((id) => fetchClickUpList(id)))
+    return NextResponse.json(filterCursos(results.flat()))
+  }
+
   const emails = (req.nextUrl.searchParams.get("emails") ?? "")
     .split(",")
     .map((e) => e.trim())
@@ -25,7 +33,7 @@ export async function GET(req: NextRequest) {
     }
   }
 
-  const results = await Promise.all(CLICKUP_LISTS_CURSOS.map(fetchClickUpList))
+  const results = await Promise.all(CLICKUP_LISTS_CURSOS.map((id) => fetchClickUpList(id)))
   const tasks = results.flat()
   return NextResponse.json(filterCursos(filterByAssignees(tasks, emails)))
 }

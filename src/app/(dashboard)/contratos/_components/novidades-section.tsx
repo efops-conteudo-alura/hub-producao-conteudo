@@ -47,6 +47,9 @@ export function NovidadesSection({ tasks, comments, onDismiss }: Props) {
               <div className="flex items-start justify-between gap-2 mb-2">
                 <div className="flex flex-col gap-1 min-w-0">
                   <span className="text-sm font-medium truncate">{task.name}</span>
+                  {task.instructor && (
+                    <span className="text-xs text-muted-foreground">{task.instructor}</span>
+                  )}
                   <span
                     className="text-xs px-2 py-0.5 rounded-full font-medium self-start"
                     style={{
