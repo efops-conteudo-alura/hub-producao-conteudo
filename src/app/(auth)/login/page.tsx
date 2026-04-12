@@ -29,18 +29,21 @@ function LoginForm() {
     setLoading(true);
 
     const formData = new FormData(e.currentTarget);
-    const result = await signIn("credentials", {
-      email: formData.get("email") as string,
-      password: formData.get("password") as string,
-      redirect: false,
-    });
+    const email = formData.get("email") as string;
+    const password = formData.get("password") as string;
+
+    const result = await signIn("credentials", { email, password, redirect: false });
 
     setLoading(false);
 
     if (result?.error) {
-      if (result.error === "NeedPassword") {
+      // NextAuth v5 sanitiza erros customizados — verificamos via endpoint dedicado
+      const checkRes = await fetch(`/api/auth/check-email?email=${encodeURIComponent(email)}`);
+      const { status } = await checkRes.json();
+
+      if (status === "needs_password") {
         setError("Sua conta ainda não tem senha cadastrada. Crie uma senha para continuar.");
-      } else if (result.error === "NoAccess") {
+      } else if (status === "no_access") {
         setError("Você não tem acesso a este sistema. Contacte um administrador.");
       } else {
         setError("Email ou senha inválidos.");
