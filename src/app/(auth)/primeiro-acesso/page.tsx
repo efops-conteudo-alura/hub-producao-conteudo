@@ -52,7 +52,11 @@ export default function PrimeiroAcessoPage() {
         return;
       }
 
-      router.push("/login?msg=conta-criada");
+      if (data.existing) {
+        router.push("/login?msg=acesso-ativado");
+      } else {
+        router.push("/login?msg=conta-criada");
+      }
     } catch {
       setError("Erro de conexão. Tente novamente.");
     } finally {

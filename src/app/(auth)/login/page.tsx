@@ -20,6 +20,7 @@ function LoginForm() {
   const searchParams = useSearchParams();
   const contaCriada = searchParams.get("msg") === "conta-criada";
   const senhaCriada = searchParams.get("msg") === "senha-criada";
+  const acessoAtivado = searchParams.get("msg") === "acesso-ativado";
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -84,9 +85,13 @@ function LoginForm() {
                 placeholder="••••••••"
               />
             </div>
-            {(contaCriada || senhaCriada) && !error && (
+            {(contaCriada || senhaCriada || acessoAtivado) && !error && (
               <p className="text-sm text-green-600 bg-green-600/10 px-3 py-2 rounded-lg">
-                {senhaCriada ? "Senha criada! Faça login para continuar." : "Conta criada com sucesso! Faça login para continuar."}
+                {senhaCriada
+                  ? "Senha criada! Faça login para continuar."
+                  : acessoAtivado
+                  ? "Acesso ativado! Você já tem uma conta — entre com a senha que você usa normalmente."
+                  : "Conta criada com sucesso! Faça login para continuar."}
               </p>
             )}
             {error && (
