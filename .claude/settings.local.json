@@ -7,7 +7,15 @@
       "Bash(find /c/Users/vasco/OneDrive/Documentos/projetos-alura/select_activity -maxdepth 1 -type f \\\\\\(-name *.css -o -name .env* \\\\\\) ! -name .env.local)",
       "Bash(ls \"C:/Users/vasco/OneDrive/Documentos/projetos-alura/projeto-hub-producao-conteudo/src/app/\\(dashboard\\)/\")",
       "Bash(ls \"C:/Users/vasco/OneDrive/Documentos/projetos-alura/projeto-hub-producao-conteudo/src/app/\\(auth\\)/\")",
-      "Bash(ls:*)"
+      "Bash(ls:*)",
+      "Bash(npm install:*)",
+      "Read(//c/Program Files/**)",
+      "Read(//c/Users/rafae/AppData/Roaming/**)",
+      "Read(//c/Users/rafae/AppData/Local/**)",
+      "Bash(cmd.exe /c \"npm install jszip && npm install --save-dev @types/jszip\")",
+      "Bash(cmd.exe /c \"where npm 2>&1\")",
+      "Bash(cmd.exe /c \"cd /d C:\\\\Users\\\\rafae\\\\Desktop\\\\alura\\\\hub-producao-conteudo && npm install jszip 2>&1\")",
+      "Bash(powershell.exe -Command \"Get-Command npm -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Source\")"
     ]
   }
 }

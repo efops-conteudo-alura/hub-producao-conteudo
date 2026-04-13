@@ -1,27 +1,77 @@
 import JSZip from "jszip";
 import type { Course, Exercise } from "@/types/course";
 
+// ─── Encoding helpers ────────────────────────────────────────────────────────
+
+/**
+ * Tenta corrigir mojibake: conteúdo UTF-8 lido como Latin-1.
+ * Se o string tiver caracteres Latin-1 na faixa 0xC0-0xFF seguidos de padrões
+ * compatíveis com sequências UTF-8, re-decodifica como UTF-8.
+ */
+function fixMojibake(str: string): string {
+  if (!/[\xC0-\xFF]/.test(str)) return str;
+  try {
+    const bytes = new Uint8Array(str.length);
+    for (let i = 0; i < str.length; i++) {
+      bytes[i] = str.charCodeAt(i) & 0xff;
+    }
+    const decoded = new TextDecoder("utf-8").decode(bytes);
+    return decoded.includes("\uFFFD") ? str : decoded;
+  } catch {
+    return str;
+  }
+}
+
+// ─── Kind mapping ────────────────────────────────────────────────────────────
+
 const KIND_MAP: Record<string, string> = {
+  // Sem interação
   "sin respuesta del estudiante": "TEXT_CONTENT",
   "sem resposta do aluno": "TEXT_CONTENT",
-  "selección única": "SINGLE_CHOICE",
+  "explicacion": "TEXT_CONTENT",
+  "explicacao": "TEXT_CONTENT",
+  "para saber mas": "TEXT_CONTENT",
+  // Seleção única
+  "seleccion unica": "SINGLE_CHOICE",
   "selecao unica": "SINGLE_CHOICE",
-  "seleção única": "SINGLE_CHOICE",
-  "selección múltiple": "MULTIPLE_CHOICE",
+  // Seleção múltipla
+  "seleccion multiple": "MULTIPLE_CHOICE",
   "selecao multipla": "MULTIPLE_CHOICE",
-  "seleção múltipla": "MULTIPLE_CHOICE",
 };
 
 function normalizeKindStr(raw: string): string {
   return raw
-    .toLowerCase()
     .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[\u0300-\u036f]/g, "") // remove diacríticos
+    .toLowerCase()
     .trim();
 }
 
 function mapKind(raw: string): string {
   return KIND_MAP[normalizeKindStr(raw)] ?? "TEXT_CONTENT";
+}
+
+// ─── Section header detection ─────────────────────────────────────────────────
+
+/**
+ * Normaliza uma linha para comparação de cabeçalho de seção:
+ * remove diacríticos, espaços extras, dois-pontos finais e converte para minúsculas.
+ */
+function normalizeHeaderLine(line: string): string {
+  return line
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/:$/, "")
+    .trim()
+    .toLowerCase();
+}
+
+// ─── MD Activity Parser ───────────────────────────────────────────────────────
+
+interface AltData {
+  text: string;
+  opinion: string;
+  correct: boolean;
 }
 
 type Section =
@@ -32,128 +82,133 @@ type Section =
   | `alt-${number}-opinion`
   | "sampleAnswer";
 
-interface AltData {
-  text: string;
-  opinion: string;
-  correct: boolean;
-}
-
 /**
  * Parseia um arquivo .md de atividade estruturada.
- * Retorna null se o arquivo não tiver o cabeçalho "Tipo de tarea" (transcrição de vídeo).
+ * Retorna null se não tiver o cabeçalho "Tipo de tarea" (transcrição de vídeo).
  */
-export function parseMdActivity(content: string): Exercise | null {
+export function parseMdActivity(rawContent: string): Exercise | null {
+  const content = fixMojibake(rawContent);
   const lines = content.split(/\r?\n/);
 
+  // Primeira linha: "Tipo de tarea[:]? <tipo>" ou "Task Kind[:]? <tipo>"
   const firstLine = lines[0]?.trim() ?? "";
-  const kindMatch = firstLine.match(/^(?:Tipo de tarea|Task Kind)\s+(.+)$/i);
+  const kindMatch = firstLine.match(
+    /^(?:Tipo de tarea|Task Kind):?\s+(.+)$/i
+  );
   if (!kindMatch) return null;
 
   const kind = mapKind(kindMatch[1]);
 
   let section: Section = "none";
   let currentAltIndex = -1;
+  const accumulators: Record<string, string[]> = {};
 
-  let title = "";
-  let text = "";
-  let sampleAnswer = "";
+  function getAcc(key: string): string[] {
+    if (!accumulators[key]) accumulators[key] = [];
+    return accumulators[key];
+  }
+
+  function flush() {
+    // noop — we accumulate until end
+  }
+  void flush;
+
   const alts: AltData[] = [];
-
-  const accumulators: Record<string, string[]> = {
-    title: [],
-    text: [],
-    sampleAnswer: [],
-  };
-
-  function flush(sec: Section) {
-    if (sec === "title") {
-      title = accumulators.title.join("\n").trim();
-      accumulators.title = [];
-    } else if (sec === "text") {
-      text = accumulators.text.join("\n").trim();
-      accumulators.text = [];
-    } else if (sec === "sampleAnswer") {
-      sampleAnswer = accumulators.sampleAnswer.join("\n").trim();
-      accumulators.sampleAnswer = [];
-    } else if (sec.startsWith("alt-")) {
-      const match = sec.match(/^alt-(\d+)-(text|opinion)$/);
-      if (match) {
-        const idx = parseInt(match[1], 10);
-        const part = match[2] as "text" | "opinion";
-        while (alts.length <= idx) alts.push({ text: "", opinion: "", correct: false });
-        const accumulated = (accumulators[sec] ?? []).join("\n").trim();
-        alts[idx][part] = accumulated;
-        accumulators[sec] = [];
-      }
-    }
-  }
-
-  function switchSection(newSection: Section) {
-    flush(section);
-    section = newSection;
-    if (!(section in accumulators)) {
-      accumulators[section] = [];
-    }
-  }
 
   for (let i = 1; i < lines.length; i++) {
     const line = lines[i];
     const trimmed = line.trim();
+    const normalized = normalizeHeaderLine(trimmed);
 
-    // Section header detection
-    if (/^T[ií]tul[eo]?$|^Title$/i.test(trimmed)) {
-      switchSection("title");
+    // ── Detectar cabeçalhos de seção ──────────────────────────────────────
+
+    // Título
+    if (normalized === "titulo" || normalized === "title") {
+      section = "title";
       continue;
     }
 
-    if (/^(?:Content|Contenido|Enunciado)$/i.test(trimmed)) {
-      switchSection("text");
+    // Conteúdo / Enunciado
+    if (
+      normalized === "content" ||
+      normalized === "contenido" ||
+      normalized === "enunciado"
+    ) {
+      section = "text";
       continue;
     }
 
+    // Alternativa N
     const altTextMatch = trimmed.match(/^Alternativa\s+(\d+)$/i);
     if (altTextMatch) {
       const idx = parseInt(altTextMatch[1], 10) - 1;
       currentAltIndex = idx;
-      switchSection(`alt-${idx}-text`);
+      section = `alt-${idx}-text`;
       continue;
     }
 
+    // Opinión N / Opinion N
     const altOpinionMatch = trimmed.match(/^Opini[oó]n\s+(\d+)$|^Opinion\s+(\d+)$/i);
     if (altOpinionMatch) {
       const num = altOpinionMatch[1] ?? altOpinionMatch[2];
       const idx = parseInt(num, 10) - 1;
       currentAltIndex = idx;
-      switchSection(`alt-${idx}-opinion`);
+      section = `alt-${idx}-opinion`;
       continue;
     }
 
+    // Correcto: sí/no
     const correctoMatch = trimmed.match(/^Correcto:\s*(.+)$/i);
     if (correctoMatch) {
       const val = correctoMatch[1].trim().toLowerCase();
-      const isCorrect = val === "sí" || val === "si" || val === "yes" || val === "sim" || val === "true";
+      const isCorrect =
+        val === "sí" || val === "si" || val === "yes" || val === "sim" || val === "true";
       if (currentAltIndex >= 0) {
-        while (alts.length <= currentAltIndex) alts.push({ text: "", opinion: "", correct: false });
+        while (alts.length <= currentAltIndex)
+          alts.push({ text: "", opinion: "", correct: false });
         alts[currentAltIndex].correct = isCorrect;
       }
       continue;
     }
 
-    // "Opinión" / "Opinion" without number → sampleAnswer (for TEXT_CONTENT at end)
+    // Opinión / Opinion (sem número = sampleAnswer)
     if (/^Opini[oó]n$|^Opinion$/i.test(trimmed)) {
-      switchSection("sampleAnswer");
+      section = "sampleAnswer";
       continue;
     }
 
-    // Accumulate line into current section
+    // ── Acumular conteúdo na seção atual ─────────────────────────────────
     if (section !== "none") {
-      const key = section as string;
-      if (!(key in accumulators)) accumulators[key] = [];
-      accumulators[key].push(line);
+      getAcc(section).push(line);
     }
   }
 
-  flush(section);
+  // Montar alternativas
+  for (let i = 0; i < alts.length; i++) {
+    const textLines = accumulators[`alt-${i}-text`] ?? [];
+    const opinionLines = accumulators[`alt-${i}-opinion`] ?? [];
+    alts[i].text = textLines.join("\n").trim();
+    alts[i].opinion = opinionLines.join("\n").trim();
+  }
+
+  // Detectar alternativas que ainda não foram criadas (só o accumulator existe)
+  const altKeys = Object.keys(accumulators).filter((k) =>
+    k.match(/^alt-\d+-text$/)
+  );
+  for (const key of altKeys) {
+    const idx = parseInt(key.match(/^alt-(\d+)-text$/)![1], 10);
+    if (!alts[idx]) {
+      alts[idx] = {
+        text: (accumulators[key] ?? []).join("\n").trim(),
+        opinion: (accumulators[`alt-${idx}-opinion`] ?? []).join("\n").trim(),
+        correct: false,
+      };
+    }
+  }
+
+  const title = (accumulators["title"] ?? []).join("\n").trim();
+  const text = (accumulators["text"] ?? []).join("\n").trim();
+  const sampleAnswer = (accumulators["sampleAnswer"] ?? []).join("\n").trim();
 
   return {
     id: crypto.randomUUID(),
@@ -169,14 +224,23 @@ export function parseMdActivity(content: string): Exercise | null {
   };
 }
 
+// ─── ZIP Course Parser ────────────────────────────────────────────────────────
+
 /**
- * Parseia um arquivo ZIP com a estrutura de traduções de curso:
- * <courseId>/<N - Aula>/<N.M-Atividade.md>
- *
- * O courseId é extraído automaticamente do nome da pasta raiz do ZIP.
+ * Parseia um arquivo ZIP com a estrutura de traduções de curso.
+ * O courseId é extraído automaticamente do nome da pasta raiz.
  */
 export async function parseZipCourse(file: File): Promise<Course> {
-  const zip = await JSZip.loadAsync(file);
+  const zip = await JSZip.loadAsync(file, {
+    // Tentar UTF-8 primeiro; se falhar, usar Windows-1252 (comum em ZIPs gerados no Windows)
+    decodeFileName: (bytes: Uint8Array) => {
+      try {
+        return new TextDecoder("utf-8", { fatal: true }).decode(bytes);
+      } catch {
+        return new TextDecoder("windows-1252").decode(bytes);
+      }
+    },
+  });
 
   const mdEntries = Object.values(zip.files).filter(
     (f) => !f.dir && f.name.toLowerCase().endsWith(".md")
@@ -186,9 +250,9 @@ export async function parseZipCourse(file: File): Promise<Course> {
     throw new Error("O ZIP não contém arquivos .md.");
   }
 
-  // Extrair courseId da pasta raiz (primeira parte do path)
-  const firstPath = mdEntries[0].name;
-  const courseId = firstPath.split("/")[0] ?? file.name.replace(/\.zip$/i, "");
+  // courseId = nome da pasta raiz (com fixMojibake para nomes mal codificados)
+  const rawCourseId = mdEntries[0].name.split("/")[0] ?? "";
+  const courseId = fixMojibake(rawCourseId) || file.name.replace(/\.zip$/i, "");
 
   interface LessonEntry {
     lessonNumber: number;
@@ -202,36 +266,38 @@ export async function parseZipCourse(file: File): Promise<Course> {
     // Esperado: [courseId, "N - Aula Name", "N.M-Titulo.md"]
     if (parts.length < 3) continue;
 
-    const lessonFolder = parts[parts.length - 2];
-    const fileName = parts[parts.length - 1];
+    const lessonFolder = fixMojibake(parts[parts.length - 2]);
+    const fileName = fixMojibake(parts[parts.length - 1]);
 
     // Extrair número da aula: "1 - O_Workspace" → 1
     const lessonNumMatch = lessonFolder.match(/^(\d+)/);
     if (!lessonNumMatch) continue;
     const lessonNumber = parseInt(lessonNumMatch[1], 10);
-    const lessonTitle = lessonFolder.replace(/^\d+\s*-\s*/, "").replace(/_/g, " ");
+    const lessonTitle = lessonFolder
+      .replace(/^\d+\s*[-–]\s*/, "")
+      .replace(/_/g, " ")
+      .trim();
 
     // Extrair ordem do arquivo: "1.2-Titulo.md" → 1.2
     const fileOrderMatch = fileName.match(/^([\d.]+)/);
     const fileOrder = fileOrderMatch ? parseFloat(fileOrderMatch[1]) : 999;
 
-    const content = await entry.async("text");
-    const exercise = parseMdActivity(content);
+    // Ler conteúdo como bytes e decodificar como UTF-8 (mais confiável que "text")
+    const uint8 = await entry.async("uint8array");
+    const rawContent = new TextDecoder("utf-8").decode(uint8);
+
+    const exercise = parseMdActivity(rawContent);
     if (!exercise) continue; // transcrição de vídeo → ignorar
 
     if (!lessonsMap.has(lessonNumber)) {
-      lessonsMap.set(lessonNumber, {
-        lessonNumber,
-        title: lessonTitle,
-        exercises: [],
-      });
+      lessonsMap.set(lessonNumber, { lessonNumber, title: lessonTitle, exercises: [] });
     }
     lessonsMap.get(lessonNumber)!.exercises.push({ order: fileOrder, exercise });
   }
 
   if (lessonsMap.size === 0) {
     throw new Error(
-      "Nenhuma atividade válida encontrada no ZIP (todos os arquivos são transcrições de vídeo ou o formato é inválido)."
+      "Nenhuma atividade válida encontrada no ZIP (todos os arquivos são transcrições de vídeo ou o formato não foi reconhecido)."
     );
   }
 
