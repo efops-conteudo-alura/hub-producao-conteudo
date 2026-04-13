@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { GuideModal } from "../_components/GuideModal";
@@ -9,7 +9,7 @@ interface Submission {
   id: string;
   courseId: string;
   status: string;
-  instructor: { name: string; email: string };
+  instructor: { id: string; name: string; email: string };
   coordinator: { name: string; email: string };
   createdAt: string;
   exportedAt: string | null;
@@ -34,6 +34,23 @@ export default function SubmissoesPage() {
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [confirmId, setConfirmId] = useState<string | null>(null);
   const [fetchError, setFetchError] = useState<string | null>(null);
+
+  // Calcula versão por grupo courseId+instrutor (API retorna do mais novo ao mais antigo)
+  const versionMap = useMemo(() => {
+    const groups = new Map<string, string[]>();
+    submissions.forEach((s) => {
+      const key = `${s.courseId}__${s.instructor.id}`;
+      if (!groups.has(key)) groups.set(key, []);
+      groups.get(key)!.push(s.id);
+    });
+    const map = new Map<string, number>();
+    groups.forEach((ids) => {
+      if (ids.length > 1) {
+        [...ids].reverse().forEach((id, i) => map.set(id, i + 1));
+      }
+    });
+    return map;
+  }, [submissions]);
 
   useEffect(() => {
     fetch("/api/seletor/submissoes")
@@ -111,7 +128,12 @@ export default function SubmissoesPage() {
                 href={`/seletor-de-atividades/submissoes/${s.id}`}
                 className="flex flex-1 flex-col gap-0.5 py-4"
               >
-                <p className="text-sm font-medium text-foreground">{s.courseId}</p>
+                <p className="text-sm font-medium text-foreground">
+                  {s.courseId}
+                  {versionMap.has(s.id) && (
+                    <span className="ml-1.5 text-xs text-muted-foreground font-normal">· v{versionMap.get(s.id)}</span>
+                  )}
+                </p>
                 <p className="text-xs text-muted-foreground">
                   {s.instructor.name} · {new Date(s.createdAt).toLocaleDateString("pt-BR")}
                 </p>

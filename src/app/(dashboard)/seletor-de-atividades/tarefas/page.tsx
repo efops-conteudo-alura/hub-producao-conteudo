@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import { GuideModal } from "../_components/GuideModal";
 
@@ -41,6 +41,22 @@ export default function TarefasPage() {
   const pending = tasks.filter((t) => t.status === "pending");
   const done = tasks.filter((t) => t.status !== "pending");
 
+  // Calcula versão por courseId (instrutor já vê só suas tarefas)
+  const versionMap = useMemo(() => {
+    const groups = new Map<string, string[]>();
+    tasks.forEach((t) => {
+      if (!groups.has(t.courseId)) groups.set(t.courseId, []);
+      groups.get(t.courseId)!.push(t.id);
+    });
+    const map = new Map<string, number>();
+    groups.forEach((ids) => {
+      if (ids.length > 1) {
+        [...ids].reverse().forEach((id, i) => map.set(id, i + 1));
+      }
+    });
+    return map;
+  }, [tasks]);
+
   return (
     <main className="flex flex-1 flex-col px-6 py-10 max-w-3xl mx-auto w-full gap-6">
       <div className="flex items-center gap-3">
@@ -68,11 +84,16 @@ export default function TarefasPage() {
           {pending.map((t) => (
             <Link
               key={t.id}
-              href={`/seletor-de-atividades/tarefas/${t.id}`}
+              href={`/seletor-de-atividades/tarefas/${t.id}${versionMap.has(t.id) ? `?v=${versionMap.get(t.id)}` : ""}`}
               className="flex items-center justify-between bg-card rounded-xl border border-border px-5 py-4 hover:border-primary/30 transition-colors"
             >
               <div className="flex flex-col gap-0.5">
-                <p className="text-sm font-medium text-foreground">{t.courseId}</p>
+                <p className="text-sm font-medium text-foreground">
+                  {t.courseId}
+                  {versionMap.has(t.id) && (
+                    <span className="ml-1.5 text-xs text-muted-foreground font-normal">· v{versionMap.get(t.id)}</span>
+                  )}
+                </p>
                 <p className="text-xs text-muted-foreground">
                   {t.coordinator.name} · {new Date(t.createdAt).toLocaleDateString("pt-BR")}
                 </p>
@@ -93,11 +114,16 @@ export default function TarefasPage() {
           {done.map((t) => (
             <Link
               key={t.id}
-              href={`/seletor-de-atividades/tarefas/${t.id}`}
+              href={`/seletor-de-atividades/tarefas/${t.id}${versionMap.has(t.id) ? `?v=${versionMap.get(t.id)}` : ""}`}
               className="flex items-center justify-between bg-card/60 rounded-xl border border-border px-5 py-4 opacity-70 hover:opacity-100 hover:border-primary/30 transition-all"
             >
               <div className="flex flex-col gap-0.5">
-                <p className="text-sm font-medium text-foreground">{t.courseId}</p>
+                <p className="text-sm font-medium text-foreground">
+                  {t.courseId}
+                  {versionMap.has(t.id) && (
+                    <span className="ml-1.5 text-xs text-muted-foreground font-normal">· v{versionMap.get(t.id)}</span>
+                  )}
+                </p>
                 <p className="text-xs text-muted-foreground">
                   {t.coordinator.name} · {new Date(t.createdAt).toLocaleDateString("pt-BR")}
                 </p>

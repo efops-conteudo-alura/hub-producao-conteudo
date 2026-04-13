@@ -30,7 +30,7 @@ interface SubmissionDetail {
   id: string;
   courseId: string;
   status: string;
-  instructor: { name: string; email: string };
+  instructor: { id: string; name: string; email: string };
   originalData: Course;
   submittedData: { courseId?: string; lessons?: Lesson[] };
   createdAt: string;
@@ -48,6 +48,7 @@ export default function SubmissaoDetailPage({
   const [loading, setLoading] = useState(true);
   const [exporting, setExporting] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [reopening, setReopening] = useState(false);
 
   const [editedLessons, setEditedLessons] = useState<Lesson[]>([]);
   const [editingExerciseId, setEditingExerciseId] = useState<string | null>(null);
@@ -215,6 +216,32 @@ export default function SubmissaoDetailPage({
       setExportError("Erro de conexão. Verifique sua internet e tente novamente.");
     } finally {
       setExporting(false);
+    }
+  }
+
+  async function handleReopen() {
+    if (!submission) return;
+    setReopening(true);
+    setExportError(null);
+    try {
+      const res = await fetch("/api/seletor/submissoes", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          instructorId: submission.instructor.id,
+          originalData: { courseId: submission.courseId, lessons: editedLessons },
+        }),
+      });
+      if (!res.ok) {
+        const json = await res.json().catch(() => ({}));
+        setExportError(json.error ?? "Erro ao criar nova versão.");
+        return;
+      }
+      router.push("/seletor-de-atividades/submissoes");
+    } catch {
+      setExportError("Erro de conexão. Tente novamente.");
+    } finally {
+      setReopening(false);
     }
   }
 
@@ -394,21 +421,34 @@ export default function SubmissaoDetailPage({
               {uploadFeedback.message}
             </p>
           )}
-          <div className="flex gap-3">
-            <button
-              onClick={handleUploadToAdmin}
-              disabled={uploading || exporting || editedLessons.length === 0}
-              className="bg-secondary hover:bg-secondary/80 disabled:opacity-50 text-secondary-foreground font-bold px-6 py-3 rounded-xl transition-colors"
-            >
-              {uploading ? "Enviando..." : "↑ Subir no Admin"}
-            </button>
-            <button
-              onClick={handleDownload}
-              disabled={exporting || uploading || editedLessons.length === 0}
-              className="bg-primary hover:bg-primary/80 disabled:opacity-50 text-primary-foreground font-bold px-8 py-3 rounded-xl transition-colors"
-            >
-              {exporting ? "Exportando..." : "⬇ Baixar JSON"}
-            </button>
+          <div className="flex gap-3 w-full justify-between items-center">
+            <div>
+              {submission.status === "reviewed" && editedLessons.length > 0 && (
+                <button
+                  onClick={handleReopen}
+                  disabled={reopening || exporting || uploading}
+                  className="border border-border hover:border-primary/40 text-muted-foreground hover:text-foreground disabled:opacity-50 font-semibold px-5 py-3 rounded-xl transition-colors text-sm"
+                >
+                  {reopening ? "Criando..." : "↩ Reabrir para instrutor"}
+                </button>
+              )}
+            </div>
+            <div className="flex gap-3">
+              <button
+                onClick={handleUploadToAdmin}
+                disabled={uploading || exporting || editedLessons.length === 0}
+                className="bg-secondary hover:bg-secondary/80 disabled:opacity-50 text-secondary-foreground font-bold px-6 py-3 rounded-xl transition-colors"
+              >
+                {uploading ? "Enviando..." : "↑ Subir no Admin"}
+              </button>
+              <button
+                onClick={handleDownload}
+                disabled={exporting || uploading || editedLessons.length === 0}
+                className="bg-primary hover:bg-primary/80 disabled:opacity-50 text-primary-foreground font-bold px-8 py-3 rounded-xl transition-colors"
+              >
+                {exporting ? "Exportando..." : "⬇ Baixar JSON"}
+              </button>
+            </div>
           </div>
         </div>
       </footer>

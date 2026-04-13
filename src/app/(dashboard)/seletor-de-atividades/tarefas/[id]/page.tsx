@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect, use } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense, useState, useEffect, use } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useApp } from "@/context/AppContext";
 import { LessonAccordion } from "../../_components/LessonAccordion";
 import { StepBar } from "../../_components/StepBar";
@@ -19,13 +19,15 @@ interface TaskDetail {
   createdAt: string;
 }
 
-export default function TarefaDetailPage({
+function TarefaDetailContent({
   params,
 }: {
   params: Promise<{ id: string }>;
 }) {
   const { id } = use(params);
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const version = searchParams.get("v");
   const { course, setCourse, selectedLessons, toggleExercise, updateComment, updateExercise, updateAlternative, clearAll } = useApp();
 
   const [task, setTask] = useState<TaskDetail | null>(null);
@@ -135,6 +137,7 @@ export default function TarefaDetailPage({
             </p>
             <h1 className="font-heading font-bold text-primary text-lg leading-tight">
               {task.courseId}
+              {version && <span className="ml-1.5 text-sm font-normal text-muted-foreground">· v{version}</span>}
             </h1>
             <span className={`text-xs ${task.status === "exported" ? "text-green-600 dark:text-green-400" : "text-yellow-600 dark:text-yellow-400"}`}>
               {task.status === "exported" ? "exportado pelo coordenador" : "revisão enviada"}
@@ -209,6 +212,7 @@ export default function TarefaDetailPage({
             </p>
             <h1 className="font-heading font-bold text-primary text-lg leading-tight">
               {task.courseId}
+              {version && <span className="ml-1.5 text-sm font-normal text-muted-foreground">· v{version}</span>}
             </h1>
           </div>
           <button
@@ -338,5 +342,17 @@ export default function TarefaDetailPage({
         </main>
       )}
     </div>
+  );
+}
+
+export default function TarefaDetailPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  return (
+    <Suspense>
+      <TarefaDetailContent params={params} />
+    </Suspense>
   );
 }
