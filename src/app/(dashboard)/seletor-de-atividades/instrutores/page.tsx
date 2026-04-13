@@ -3,6 +3,8 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 
+const CRIAR_SENHA_URL = "https://hub-producao-conteudo.vercel.app/criar-senha";
+
 interface Instrutor {
   id: string;
   name: string;
@@ -17,6 +19,14 @@ export default function InstrutoresPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [copied, setCopied] = useState(false);
+
+  function handleCopyLink() {
+    navigator.clipboard.writeText(CRIAR_SENHA_URL).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  }
 
   useEffect(() => {
     fetch("/api/seletor/instrutores")
@@ -50,7 +60,7 @@ export default function InstrutoresPage() {
     ]);
     setName("");
     setEmail("");
-    setSuccess(`${data.name} cadastrado. No primeiro acesso, o instrutor deve ir em /criar-senha para definir a sua senha.`);
+    setSuccess(data.name);
   }
 
   return (
@@ -92,7 +102,21 @@ export default function InstrutoresPage() {
             <p className="text-destructive text-sm bg-destructive/10 px-3 py-2 rounded-lg">{error}</p>
           )}
           {success && (
-            <p className="text-primary text-sm bg-primary/10 px-3 py-2 rounded-lg">{success}</p>
+            <div className="bg-primary/10 px-3 py-3 rounded-lg flex flex-col gap-2">
+              <p className="text-primary text-sm font-medium">{success} cadastrado! Envie o link abaixo para o instrutor criar a senha:</p>
+              <div className="flex items-center gap-2">
+                <code className="flex-1 text-xs bg-background px-2 py-1.5 rounded border border-border text-muted-foreground truncate">
+                  {CRIAR_SENHA_URL}
+                </code>
+                <button
+                  type="button"
+                  onClick={handleCopyLink}
+                  className="shrink-0 text-xs px-3 py-1.5 rounded border border-border bg-background hover:bg-muted transition-colors"
+                >
+                  {copied ? "Copiado!" : "Copiar"}
+                </button>
+              </div>
+            </div>
           )}
           <button
             type="submit"
@@ -103,8 +127,11 @@ export default function InstrutoresPage() {
           </button>
         </form>
         <p className="text-muted-foreground text-xs">
-          No primeiro acesso, o instrutor precisa criar uma senha em{" "}
-          <span className="font-mono">/criar-senha</span>.
+          Após cadastrar, envie o link{" "}
+          <a href={CRIAR_SENHA_URL} target="_blank" rel="noopener noreferrer" className="font-mono underline underline-offset-2 hover:text-foreground transition-colors">
+            {CRIAR_SENHA_URL}
+          </a>{" "}
+          para o instrutor criar a senha no primeiro acesso.
         </p>
       </div>
 

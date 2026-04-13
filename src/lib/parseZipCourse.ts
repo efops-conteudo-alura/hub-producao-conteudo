@@ -233,11 +233,12 @@ export function parseMdActivity(rawContent: string): Exercise | null {
 export async function parseZipCourse(file: File): Promise<Course> {
   const zip = await JSZip.loadAsync(file, {
     // Tentar UTF-8 primeiro; se falhar, usar Windows-1252 (comum em ZIPs gerados no Windows)
-    decodeFileName: (bytes: Uint8Array) => {
+    decodeFileName: (bytes: string[] | Uint8Array | Buffer) => {
+      if (Array.isArray(bytes)) return bytes.join("");
       try {
-        return new TextDecoder("utf-8", { fatal: true }).decode(bytes);
+        return new TextDecoder("utf-8", { fatal: true }).decode(bytes as Uint8Array);
       } catch {
-        return new TextDecoder("windows-1252").decode(bytes);
+        return new TextDecoder("windows-1252").decode(bytes as Uint8Array);
       }
     },
   });
