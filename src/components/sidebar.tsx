@@ -4,7 +4,7 @@ import { useState } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { signOut, useSession } from "next-auth/react"
-import { Home, BookOpen, FileCheck, LogOut, GraduationCap, BookMarked, BarChart2, ListChecks, ScanSearch } from "lucide-react"
+import { Home, BookOpen, FileCheck, LogOut, GraduationCap, BookMarked, BarChart2, ListChecks, ScanSearch, FileText } from "lucide-react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { ProfileDialog } from "@/components/profile-dialog"
 
@@ -18,6 +18,7 @@ interface SidebarProps {
 
 const mainNavItems = [
   { href: "/home", label: "Início", icon: Home },
+  { href: "/contratos", label: "Contratos", icon: FileText },
   { href: "/pesquisa-mercado", label: "Pesquisa de Mercado", icon: BarChart2 },
   { href: "/validacao-ementa", label: "Validação de Ementa", icon: FileCheck },
   { href: "/revisao-didatica", label: "Revisão Didática", icon: GraduationCap },
@@ -56,11 +57,8 @@ export function Sidebar({ user }: SidebarProps) {
   const { data: session } = useSession()
   const [profileOpen, setProfileOpen] = useState(false)
 
-  const isInstructor =
-    session?.user?.role === "INSTRUCTOR" ||
-    (session?.user?.selectorRole === "INSTRUCTOR" && !session?.user?.role)
-  // Instrutores fazem login sem senha — não podem editar credenciais por aqui
-  const canChangePassword = !isInstructor
+  const isInstructor = session?.user?.role === "INSTRUCTOR"
+  const canChangePassword = true // todos os usuários agora têm senha
 
   const visibleMainItems = isInstructor ? [seletorItem] : mainNavItems
   const visibleBottomItems = isInstructor ? [] : bottomNavItems

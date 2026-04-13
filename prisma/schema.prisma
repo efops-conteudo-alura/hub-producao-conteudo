@@ -505,3 +505,12 @@ model UserCredential {
 
   @@unique([userId, service])
 }
+
+model UsefulLink {
+  id          String   @id @default(cuid())
+  title       String
+  url         String
+  description String?
+  order       Int      @default(0)
+  createdAt   DateTime @default(now())
+}

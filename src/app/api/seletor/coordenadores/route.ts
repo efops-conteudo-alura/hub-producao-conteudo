@@ -8,7 +8,7 @@ export async function GET() {
 
   const appRoles = await prisma.appRole.findMany({
     where: {
-      app: "select-activity",
+      app: "hub-producao-conteudo",
       role: { in: ["COORDINATOR", "ADMIN"] },
     },
     include: {

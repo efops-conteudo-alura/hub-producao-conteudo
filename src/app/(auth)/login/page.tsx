@@ -19,6 +19,7 @@ function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const contaCriada = searchParams.get("msg") === "conta-criada";
+  const senhaCriada = searchParams.get("msg") === "senha-criada";
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -28,18 +29,21 @@ function LoginForm() {
     setLoading(true);
 
     const formData = new FormData(e.currentTarget);
-    const result = await signIn("credentials", {
-      email: formData.get("email") as string,
-      password: formData.get("password") as string,
-      redirect: false,
-    });
+    const email = formData.get("email") as string;
+    const password = formData.get("password") as string;
+
+    const result = await signIn("credentials", { email, password, redirect: false });
 
     setLoading(false);
 
     if (result?.error) {
-      if (result.error === "NeedPassword") {
-        setError("Sua conta ainda não tem senha. Crie uma em /criar-senha.");
-      } else if (result.error === "NoAccess") {
+      // NextAuth v5 sanitiza erros customizados — verificamos via endpoint dedicado
+      const checkRes = await fetch(`/api/auth/check-email?email=${encodeURIComponent(email)}`);
+      const { status } = await checkRes.json();
+
+      if (status === "needs_password") {
+        setError("Sua conta ainda não tem senha cadastrada. Crie uma senha para continuar.");
+      } else if (status === "no_access") {
         setError("Você não tem acesso a este sistema. Contacte um administrador.");
       } else {
         setError("Email ou senha inválidos.");
@@ -72,10 +76,7 @@ function LoginForm() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="password">
-                Senha{" "}
-                <span className="text-muted-foreground font-normal text-xs">(instrutores: deixe em branco)</span>
-              </Label>
+              <Label htmlFor="password">Senha</Label>
               <Input
                 id="password"
                 name="password"
@@ -83,17 +84,17 @@ function LoginForm() {
                 placeholder="••••••••"
               />
             </div>
-            {contaCriada && !error && (
+            {(contaCriada || senhaCriada) && !error && (
               <p className="text-sm text-green-600 bg-green-600/10 px-3 py-2 rounded-lg">
-                Conta criada com sucesso! Faça login para continuar.
+                {senhaCriada ? "Senha criada! Faça login para continuar." : "Conta criada com sucesso! Faça login para continuar."}
               </p>
             )}
             {error && (
               <p className="text-sm text-destructive">
                 {error}{" "}
-                {error.includes("/criar-senha") && (
+                {error.includes("senha cadastrada") && (
                   <Link href="/criar-senha" className="underline font-medium">
-                    Criar senha
+                    Criar senha agora
                   </Link>
                 )}
               </p>

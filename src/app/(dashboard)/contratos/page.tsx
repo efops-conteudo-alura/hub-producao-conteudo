@@ -1,11 +1,11 @@
 import { auth } from "@/lib/auth"
-import { HomeDashboard } from "./_components/home-dashboard"
+import { ContratosDashboard } from "./_components/contratos-dashboard"
 
-export default async function HomePage() {
+export default async function ContratosPage() {
   const session = await auth()
   return (
-    <HomeDashboard
-      userName={session?.user?.name ?? "usuário"}
+    <ContratosDashboard
+      userId={session?.user?.id ?? ""}
       userEmail={session?.user?.email ?? ""}
       isAdmin={session?.user?.role === "ADMIN"}
     />

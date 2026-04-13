@@ -8,14 +8,15 @@
       "Bash(ls \"C:/Users/vasco/OneDrive/Documentos/projetos-alura/projeto-hub-producao-conteudo/src/app/\\(dashboard\\)/\")",
       "Bash(ls \"C:/Users/vasco/OneDrive/Documentos/projetos-alura/projeto-hub-producao-conteudo/src/app/\\(auth\\)/\")",
       "Bash(ls:*)",
-      "Bash(npm install:*)",
-      "Read(//c/Program Files/**)",
-      "Read(//c/Users/rafae/AppData/Roaming/**)",
-      "Read(//c/Users/rafae/AppData/Local/**)",
-      "Bash(cmd.exe /c \"npm install jszip && npm install --save-dev @types/jszip\")",
-      "Bash(cmd.exe /c \"where npm 2>&1\")",
-      "Bash(cmd.exe /c \"cd /d C:\\\\Users\\\\rafae\\\\Desktop\\\\alura\\\\hub-producao-conteudo && npm install jszip 2>&1\")",
-      "Bash(powershell.exe -Command \"Get-Command npm -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Source\")"
+      "Bash(grep -r \"github\\\\|fork\\\\|bedrock\\\\|seção\" /c/Users/vasco/onedrive/documentos/projetos-alura/projeto-hub-producao-conteudo/*.md)",
+      "Bash(git add:*)",
+      "Bash(git commit -m ':*)",
+      "Bash(git push:*)",
+      "Bash(git commit:*)",
+      "Bash(git remote:*)",
+      "mcp__vercel__list_projects",
+      "mcp__vercel__get_deployment",
+      "mcp__vercel__list_teams"
     ]
   }
 }

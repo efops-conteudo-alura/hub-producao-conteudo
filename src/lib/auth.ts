@@ -20,43 +20,15 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         const user = await prisma.user.findUnique({ where: { email } });
         if (!user) return null;
 
-        // Busca roles nos dois apps em paralelo
-        const [hubRole, selectorAppRole] = await Promise.all([
-          prisma.appRole.findUnique({
-            where: { userId_app: { userId: user.id, app: "hub-producao-conteudo" } },
-          }),
-          prisma.appRole.findUnique({
-            where: { userId_app: { userId: user.id, app: "select-activity" } },
-          }),
-        ]);
+        const hubRole = await prisma.appRole.findUnique({
+          where: { userId_app: { userId: user.id, app: "hub-producao-conteudo" } },
+        });
 
-        // Sem acesso em nenhum dos dois apps
-        if (!hubRole && !selectorAppRole) {
-          throw new Error("NoAccess");
-        }
+        if (!hubRole) throw new Error("NoAccess");
 
-        // Instrutor: login so com email, sem senha
-        // Aceita INSTRUCTOR tanto no hub-producao-conteudo quanto no select-activity (compat legada)
-        const isInstructor =
-          hubRole?.role === "INSTRUCTOR" ||
-          (!hubRole && selectorAppRole?.role === "INSTRUCTOR");
+        if (!user.password) throw new Error("NeedPassword");
 
-        if (isInstructor) {
-          return {
-            id: user.id,
-            email: user.email,
-            name: user.name,
-            role: hubRole?.role ?? "",
-            selectorRole: selectorAppRole?.role,
-          };
-        }
-
-        // ADMIN e COORDINATOR exigem senha
-        if (!user.password) {
-          throw new Error("NeedPassword");
-        }
-
-        const password = (credentials.password as string) ?? "";
+        const password = credentials.password as string;
         if (!password) return null;
 
         const passwordMatch = await bcrypt.compare(password, user.password);
@@ -66,8 +38,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           id: user.id,
           email: user.email,
           name: user.name,
-          role: hubRole?.role ?? "",
-          selectorRole: selectorAppRole?.role,
+          role: hubRole.role,
         };
       },
     }),
