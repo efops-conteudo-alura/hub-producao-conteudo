@@ -15,16 +15,34 @@ const CP437: string =
   "αßΓπΣσµτΦΘΩδ∞φε∩" +
   "≡±≥≤⌠⌡÷≈°∙·√ⁿ²■\u00a0";
 
-function decodeCp437(bytes: Uint8Array | Buffer): string {
-  return Array.from(bytes as Uint8Array)
+function decodeCp437(bytes: Uint8Array): string {
+  return Array.from(bytes)
     .map((b) => (b < 0x80 ? String.fromCharCode(b) : CP437[b - 0x80] ?? "?"))
     .join("");
 }
 
 /**
- * Tenta corrigir mojibake: conteúdo UTF-8 lido como Latin-1.
- * Se o string tiver caracteres Latin-1 na faixa 0xC0-0xFF seguidos de padrões
- * compatíveis com sequências UTF-8, re-decodifica como UTF-8.
+ * Corrige o nome de um entry do ZIP que pode vir como string binária
+ * (cada char = um byte original). Tenta UTF-8 primeiro; se falhar, tenta CP437.
+ */
+function fixEntryName(name: string): string {
+  // Converter cada char code de volta para byte
+  const bytes = new Uint8Array(name.length);
+  for (let i = 0; i < name.length; i++) {
+    bytes[i] = name.charCodeAt(i) & 0xff;
+  }
+  // Tentar UTF-8 (Chrome extension gera ZIPs com nomes UTF-8)
+  try {
+    const decoded = new TextDecoder("utf-8", { fatal: true }).decode(bytes);
+    return decoded;
+  } catch {
+    // Fallback CP437 (ZIPs antigos do Windows)
+    return decodeCp437(bytes);
+  }
+}
+
+/**
+ * Tenta corrigir mojibake no conteúdo de arquivos: UTF-8 lido como Latin-1.
  */
 function fixMojibake(str: string): string {
   if (!/[\xC0-\xFF]/.test(str)) return str;
@@ -290,20 +308,7 @@ export function parseMdActivity(rawContent: string): Exercise | null {
  * O courseId é extraído automaticamente do nome da pasta raiz.
  */
 export async function parseZipCourse(file: File): Promise<Course> {
-  const zip = await JSZip.loadAsync(file, {
-    // Tentar UTF-8 primeiro; se falhar, usar Windows-1252 (comum em ZIPs gerados no Windows)
-    decodeFileName: (bytes: Uint8Array | Buffer | string[]) => {
-      const buf = Array.isArray(bytes)
-        ? new Uint8Array(bytes.map((b) => (b as string).charCodeAt(0)))
-        : (bytes as Uint8Array);
-      try {
-        return new TextDecoder("utf-8", { fatal: true }).decode(buf);
-      } catch {
-        // ZIPs gerados no Windows usam CP437 quando não têm flag UTF-8
-        return decodeCp437(buf);
-      }
-    },
-  });
+  const zip = await JSZip.loadAsync(file);
 
   const mdEntries = Object.values(zip.files).filter(
     (f) => !f.dir && f.name.toLowerCase().endsWith(".md")
@@ -313,9 +318,9 @@ export async function parseZipCourse(file: File): Promise<Course> {
     throw new Error("O ZIP não contém arquivos .md.");
   }
 
-  // courseId = nome da pasta raiz (com fixMojibake para nomes mal codificados)
-  const rawCourseId = mdEntries[0].name.split("/")[0] ?? "";
-  const courseId = fixMojibake(rawCourseId) || file.name.replace(/\.zip$/i, "");
+  // courseId = nome da pasta raiz — fixEntryName corrige encoding binário → UTF-8/CP437
+  const rawCourseId = fixEntryName(mdEntries[0].name.split("/")[0] ?? "");
+  const courseId = rawCourseId || file.name.replace(/\.zip$/i, "");
 
   interface LessonEntry {
     lessonNumber: number;
@@ -329,8 +334,8 @@ export async function parseZipCourse(file: File): Promise<Course> {
     // Esperado: [courseId, "N - Aula Name", "N.M-Titulo.md"]
     if (parts.length < 3) continue;
 
-    const lessonFolder = fixMojibake(parts[parts.length - 2]);
-    const fileName = fixMojibake(parts[parts.length - 1]);
+    const lessonFolder = fixEntryName(parts[parts.length - 2]);
+    const fileName = fixEntryName(parts[parts.length - 1]);
 
     // Extrair número da aula: "1 - O_Workspace" → 1
     const lessonNumMatch = lessonFolder.match(/^(\d+)/);
