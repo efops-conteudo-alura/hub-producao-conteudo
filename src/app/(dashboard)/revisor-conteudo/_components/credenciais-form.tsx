@@ -1,24 +1,39 @@
 "use client"
 
-import { useState } from "react"
-import { Eye, EyeOff, Save } from "lucide-react"
+import { useState, useEffect } from "react"
+import { Eye, EyeOff, Save, CheckCircle2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 
 const SERVICES = [
   { id: "github", label: "GitHub Token", placeholder: "ghp_..." },
-  { id: "video_uploader", label: "Video Uploader (credencial)", placeholder: "..." },
+  { id: "video_uploader", label: "Video Uploader Token", placeholder: "token..." },
+  { id: "claude_api_key", label: "Claude API Key", placeholder: "sk-ant-..." },
 ] as const
 
 type ServiceId = (typeof SERVICES)[number]["id"]
 
 export function CredenciaisTab() {
+  const [configured, setConfigured] = useState<Partial<Record<ServiceId, boolean>>>({})
   const [values, setValues] = useState<Partial<Record<ServiceId, string>>>({})
   const [visible, setVisible] = useState<Partial<Record<ServiceId, boolean>>>({})
   const [saving, setSaving] = useState<ServiceId | null>(null)
   const [saved, setSaved] = useState<Partial<Record<ServiceId, boolean>>>({})
   const [errors, setErrors] = useState<Partial<Record<ServiceId, string>>>({})
+
+  useEffect(() => {
+    fetch("/api/revisor/config")
+      .then((r) => r.json())
+      .then((data) => {
+        const cfg: Partial<Record<ServiceId, boolean>> = {}
+        for (const { id } of SERVICES) {
+          cfg[id] = data[id]?.configured ?? false
+        }
+        setConfigured(cfg)
+      })
+      .catch(() => {})
+  }, [])
 
   async function handleSave(service: ServiceId) {
     const value = values[service]
@@ -40,6 +55,7 @@ export function CredenciaisTab() {
         return
       }
 
+      setConfigured((c) => ({ ...c, [service]: true }))
       setSaved((s) => ({ ...s, [service]: true }))
       setValues((v) => ({ ...v, [service]: "" }))
       setTimeout(() => setSaved((s) => ({ ...s, [service]: false })), 2000)
@@ -53,18 +69,26 @@ export function CredenciaisTab() {
   return (
     <div className="max-w-lg">
       <p className="text-sm text-muted-foreground mb-6">
-        Credenciais usadas pela extensão Chrome. Armazenadas de forma segura por usuário.
+        Credenciais globais usadas pela extensão Chrome. Visíveis e editáveis apenas por admins.
       </p>
       <div className="space-y-5">
         {SERVICES.map(({ id, label, placeholder }) => (
           <div key={id} className="space-y-1.5">
-            <Label htmlFor={id}>{label}</Label>
+            <div className="flex items-center gap-2">
+              <Label htmlFor={id}>{label}</Label>
+              {configured[id] && (
+                <span className="flex items-center gap-1 text-xs text-green-600 dark:text-green-400">
+                  <CheckCircle2 size={12} />
+                  configurado
+                </span>
+              )}
+            </div>
             <div className="flex gap-2">
               <div className="relative flex-1">
                 <Input
                   id={id}
                   type={visible[id] ? "text" : "password"}
-                  placeholder={placeholder}
+                  placeholder={configured[id] ? "••••••• (substituir)" : placeholder}
                   value={values[id] ?? ""}
                   onChange={(e) =>
                     setValues((v) => ({ ...v, [id]: e.target.value }))

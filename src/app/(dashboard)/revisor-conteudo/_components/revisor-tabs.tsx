@@ -19,7 +19,7 @@ export function RevisorTabs({ isAdmin }: RevisorTabsProps) {
   const tabs: { key: Tab; label: string }[] = [
     { key: "acoes", label: "Ações" },
     { key: "auditorias", label: "Auditorias" },
-    { key: "credenciais", label: "Credenciais" },
+    ...(isAdmin ? [{ key: "credenciais" as Tab, label: "Credenciais" }] : []),
     ...(isAdmin ? [{ key: "distribuicao" as Tab, label: "Distribuição" }] : []),
   ]
 
@@ -44,7 +44,7 @@ export function RevisorTabs({ isAdmin }: RevisorTabsProps) {
 
       {activeTab === "acoes" && <AcoesTab />}
       {activeTab === "auditorias" && <AuditoriasTab isAdmin={isAdmin} />}
-      {activeTab === "credenciais" && <CredenciaisTab />}
+      {activeTab === "credenciais" && isAdmin && <CredenciaisTab />}
       {activeTab === "distribuicao" && isAdmin && <DistribuicaoTab />}
     </div>
   )
