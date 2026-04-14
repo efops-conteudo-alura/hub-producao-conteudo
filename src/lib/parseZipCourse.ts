@@ -25,15 +25,20 @@ function fixMojibake(str: string): string {
 const KIND_MAP: Record<string, string> = {
   // Sem interação (kind base — dataTag é inferido pelo título depois)
   "sin respuesta del estudiante": "TEXT_CONTENT",
+  "sin respuesta del alumno": "TEXT_CONTENT",
   "sem resposta do aluno": "TEXT_CONTENT",
   "explicacion": "HQ_EXPLANATION",
   "explicacao": "HQ_EXPLANATION",
   // Seleção única
   "seleccion unica": "SINGLE_CHOICE",
   "selecao unica": "SINGLE_CHOICE",
+  "eleccion unica": "SINGLE_CHOICE",  // "Elección única"
+  "unica escolha": "SINGLE_CHOICE",   // "Única escolha"
   // Seleção múltipla
   "seleccion multiple": "MULTIPLE_CHOICE",
   "selecao multipla": "MULTIPLE_CHOICE",
+  "opcion multiple": "MULTIPLE_CHOICE",  // "Opción múltiple"
+  "opcao multipla": "MULTIPLE_CHOICE",
 };
 
 function normalizeStr(raw: string): string {
@@ -280,8 +285,16 @@ export async function parseZipCourse(file: File): Promise<Course> {
     throw new Error("O ZIP não contém arquivos .md.");
   }
 
-  // courseId = nome da pasta raiz (JSZip já decodifica UTF-8 corretamente)
-  const courseId = mdEntries[0].name.split("/")[0] || file.name.replace(/\.zip$/i, "");
+  // Detectar se o ZIP tem pasta raiz (profundidade ≥ 3) ou é plano (profundidade 2).
+  // Ex. com raiz:  "391-curso/1 - Aula/1.1-Titulo.md"  → 3 partes
+  // Ex. plano:     "1 - Aula/1.1-Titulo.md"             → 2 partes
+  const firstParts = mdEntries[0].name.split("/");
+  const hasRootFolder = firstParts.length >= 3;
+
+  // courseId: pasta raiz quando existe; senão, nome do arquivo ZIP (sem .zip)
+  const courseId = hasRootFolder
+    ? firstParts[0]
+    : file.name.replace(/\.zip$/i, "");
 
   interface LessonEntry {
     lessonNumber: number;
@@ -292,8 +305,8 @@ export async function parseZipCourse(file: File): Promise<Course> {
 
   for (const entry of mdEntries) {
     const parts = entry.name.split("/");
-    // Esperado: [courseId, "N - Aula Name", "N.M-Titulo.md"]
-    if (parts.length < 3) continue;
+    // Precisa ter pelo menos pasta de aula + arquivo
+    if (parts.length < 2) continue;
 
     const lessonFolder = parts[parts.length - 2];
     const fileName = parts[parts.length - 1];
