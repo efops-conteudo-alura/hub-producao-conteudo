@@ -263,9 +263,9 @@ function TarefaDetailContent({
                   <button
                     onClick={startEditId}
                     title="Editar ID do curso"
-                    className="text-muted-foreground hover:text-foreground transition-colors mt-0.5"
+                    className="text-primary/50 hover:text-primary transition-colors mt-0.5"
                   >
-                    <Pencil size={13} />
+                    <Pencil size={15} />
                   </button>
                 </>
               )}
