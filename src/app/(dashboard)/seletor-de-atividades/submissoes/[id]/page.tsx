@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useEffect, use } from "react";
+import { useState, useEffect, useRef, use } from "react";
 import { useRouter } from "next/navigation";
+import { Pencil, Check, X } from "lucide-react";
 import { LessonAccordion } from "../../_components/LessonAccordion";
 import { exportSelectedCourse } from "@/lib/export";
 import type { Alternative, Course, Exercise, Lesson } from "@/types/course";
@@ -54,6 +55,10 @@ export default function SubmissaoDetailPage({
   const [editingExerciseId, setEditingExerciseId] = useState<string | null>(null);
   const [exportError, setExportError] = useState<string | null>(null);
   const [uploadFeedback, setUploadFeedback] = useState<{ success: boolean; message: string } | null>(null);
+  const [editingCourseId, setEditingCourseId] = useState(false);
+  const [draftCourseId, setDraftCourseId] = useState("");
+  const [overrideCourseId, setOverrideCourseId] = useState<string | null>(null);
+  const courseIdInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     fetch(`/api/seletor/submissoes/${id}`)
@@ -182,6 +187,24 @@ export default function SubmissaoDetailPage({
     );
   }
 
+  const effectiveCourseId = overrideCourseId ?? submission?.courseId ?? "";
+
+  function startEditCourseId() {
+    setDraftCourseId(effectiveCourseId);
+    setEditingCourseId(true);
+    setTimeout(() => courseIdInputRef.current?.select(), 0);
+  }
+
+  function confirmEditCourseId() {
+    const trimmed = draftCourseId.trim();
+    if (trimmed) setOverrideCourseId(trimmed);
+    setEditingCourseId(false);
+  }
+
+  function cancelEditCourseId() {
+    setEditingCourseId(false);
+  }
+
   async function markAsExported(): Promise<boolean> {
     if (!submission) return false;
     const res = await fetch(`/api/seletor/submissoes/${id}`, {
@@ -189,7 +212,7 @@ export default function SubmissaoDetailPage({
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         status: "exported",
-        submittedData: { courseId: submission.courseId, lessons: editedLessons },
+        submittedData: { courseId: effectiveCourseId, lessons: editedLessons },
       }),
     });
     if (!res.ok) {
@@ -209,7 +232,7 @@ export default function SubmissaoDetailPage({
       const ok = await markAsExported();
       if (!ok) return;
       exportSelectedCourse(
-        { courseId: submission.courseId, lessons: editedLessons },
+        { courseId: effectiveCourseId, lessons: editedLessons },
         editedLessons
       );
     } catch {
@@ -229,7 +252,7 @@ export default function SubmissaoDetailPage({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           instructorId: submission.instructor.id,
-          originalData: { courseId: submission.courseId, lessons: editedLessons },
+          originalData: { courseId: effectiveCourseId, lessons: editedLessons },
         }),
       });
       if (!res.ok) {
@@ -255,7 +278,7 @@ export default function SubmissaoDetailPage({
       if (!ok) return;
       const sections = buildExportSections(editedLessons);
       window.postMessage(
-        { type: "HUB_EXPORT_REQUEST", courseId: submission.courseId, sections },
+        { type: "HUB_EXPORT_REQUEST", courseId: effectiveCourseId, sections },
         "*"
       );
     } catch {
@@ -308,9 +331,42 @@ export default function SubmissaoDetailPage({
               : `Revisado por ${submission.instructor.name}`}{" "}
             · {new Date(submission.createdAt).toLocaleDateString("pt-BR")}
           </p>
-          <h1 className="font-heading font-bold text-primary text-lg leading-tight">
-            {submission.courseId}
-          </h1>
+          <div className="flex items-center gap-1.5 min-h-[28px]">
+            {editingCourseId ? (
+              <>
+                <input
+                  ref={courseIdInputRef}
+                  value={draftCourseId}
+                  onChange={(e) => setDraftCourseId(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") confirmEditCourseId();
+                    if (e.key === "Escape") cancelEditCourseId();
+                  }}
+                  className="font-heading font-bold text-primary text-lg leading-tight bg-transparent border-b border-primary outline-none w-40"
+                  autoFocus
+                />
+                <button onClick={confirmEditCourseId} title="Confirmar" className="text-primary hover:text-primary/70 transition-colors">
+                  <Check size={15} />
+                </button>
+                <button onClick={cancelEditCourseId} title="Cancelar" className="text-muted-foreground hover:text-foreground transition-colors">
+                  <X size={15} />
+                </button>
+              </>
+            ) : (
+              <>
+                <h1 className="font-heading font-bold text-primary text-lg leading-tight">
+                  {effectiveCourseId}
+                </h1>
+                <button
+                  onClick={startEditCourseId}
+                  title="Editar ID do curso"
+                  className="text-primary/50 hover:text-primary transition-colors mt-0.5"
+                >
+                  <Pencil size={15} />
+                </button>
+              </>
+            )}
+          </div>
           {submission.status === "exported" && (
             <span className="text-xs text-green-600 dark:text-green-400">exportado</span>
           )}
