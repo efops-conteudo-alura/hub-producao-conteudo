@@ -14,6 +14,7 @@ export type Exercise = {
   alternatives: Alternative[];
   comment?: string;
   isSelected?: boolean;
+  enhancedByLuri?: boolean;
 };
 
 export type Lesson = {

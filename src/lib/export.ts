@@ -7,12 +7,13 @@ export function exportSelectedCourse(course: Course, selectedLessons: Lesson[]):
       const section: Record<string, unknown> = {};
       if (lesson.title) section.title = lesson.title;
       section.activities = lesson.exercises.map(
-        ({ isSelected: _1, id: _2, comment: _3, text, kind, dataTag, title, sampleAnswer, alternatives }) => {
+        ({ isSelected: _1, id: _2, comment: _3, text, kind, dataTag, title, sampleAnswer, alternatives, enhancedByLuri }) => {
           const activity: Record<string, unknown> = { taskEnum: kind };
           if (dataTag !== undefined) activity.dataTag = dataTag;
           activity.title = title;
           activity.body = text;
           if (sampleAnswer !== undefined) activity.opinion = sampleAnswer;
+          if (enhancedByLuri) activity.enhancedByLuri = true;
           activity.alternatives = alternatives.map(({ text: body, opinion: justification, correct }) => ({
             body,
             justification,

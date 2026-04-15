@@ -19,6 +19,7 @@ type Props = {
   onEditToggle?: (exerciseId: string) => void;
   onRestore?: (lessonNumber: number, exercise: Exercise) => void;
   onRemove?: (lessonNumber: number, exerciseId: string) => void;
+  onLuriToggle?: (lessonNumber: number, exerciseId: string) => void;
   defaultOpen?: boolean;
   copyable?: boolean;
 };
@@ -38,6 +39,7 @@ export function LessonAccordion({
   onEditToggle,
   onRestore,
   onRemove,
+  onLuriToggle,
   defaultOpen = false,
   copyable = false,
 }: Props) {
@@ -79,6 +81,7 @@ export function LessonAccordion({
                 onCommentChange={onCommentChange}
                 onExerciseChange={onExerciseChange}
                 onAlternativeChange={onAlternativeChange}
+                onLuriToggle={onLuriToggle}
                 originalExercise={origExercise}
                 copyable={copyable}
               />

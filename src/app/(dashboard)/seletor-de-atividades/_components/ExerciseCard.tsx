@@ -127,6 +127,7 @@ type Props = {
   onCommentChange?: (lessonNumber: number, exerciseId: string, comment: string) => void;
   onExerciseChange?: (lessonNumber: number, exerciseId: string, changes: Partial<Exercise>) => void;
   onAlternativeChange?: (lessonNumber: number, exerciseId: string, altIndex: number, changes: Partial<Alternative>) => void;
+  onLuriToggle?: (lessonNumber: number, exerciseId: string) => void;
   originalExercise?: Exercise;
   copyable?: boolean;
 };
@@ -146,6 +147,7 @@ export function ExerciseCard({
   onCommentChange,
   onExerciseChange,
   onAlternativeChange,
+  onLuriToggle,
   originalExercise,
   copyable = false,
 }: Props) {
@@ -159,12 +161,19 @@ export function ExerciseCard({
         ? "bg-muted/60 border-primary/30"
         : "bg-muted/30 border-border"
     }`}>
-      {/* Badge de tipo de atividade */}
-      {exercise.kind && (
-        <span className="text-xs font-medium text-muted-foreground/80 bg-muted border border-border/60 rounded px-2 py-0.5 self-start">
-          {getActivityLabel(exercise.kind, exercise.dataTag)}
-        </span>
-      )}
+      {/* Badges de tipo e Luri */}
+      <div className="flex flex-wrap gap-2">
+        {exercise.kind && (
+          <span className="text-xs font-medium text-muted-foreground/80 bg-muted border border-border/60 rounded px-2 py-0.5">
+            {getActivityLabel(exercise.kind, exercise.dataTag)}
+          </span>
+        )}
+        {exercise.enhancedByLuri && (
+          <span className="text-xs font-medium text-[#5fdbfb] bg-[#5fdbfb]/10 border border-[#5fdbfb]/20 rounded px-2 py-0.5">
+            Enhanced by Luri
+          </span>
+        )}
+      </div>
 
       {/* Título e enunciado — modo seleção */}
       {selectable && (
@@ -431,8 +440,22 @@ export function ExerciseCard({
       )}
 
       {/* Botões de ação do coordenador */}
-      {(onEditToggle || onRemove) && (
-        <div className="flex justify-end gap-2 pt-1">
+      {(onEditToggle || onRemove || (onLuriToggle && (exercise.kind === "SINGLE_CHOICE" || exercise.kind === "HQ_EXPLANATION"))) && (
+        <div className="flex justify-between items-center gap-2 pt-1">
+          <div>
+            {onLuriToggle && (exercise.kind === "SINGLE_CHOICE" || exercise.kind === "HQ_EXPLANATION") && (
+              <label className="flex items-center gap-2 cursor-pointer text-xs text-[#5fdbfb]/70 hover:text-[#5fdbfb] transition-colors">
+                <input
+                  type="checkbox"
+                  checked={exercise.enhancedByLuri ?? false}
+                  onChange={() => onLuriToggle(lesson.lessonNumber, exercise.id)}
+                  className="w-3.5 h-3.5 accent-[#5fdbfb]"
+                />
+                Enhanced by Luri
+              </label>
+            )}
+          </div>
+          <div className="flex gap-2">
           {onRemove && (
             <button
               onClick={() => onRemove(lesson.lessonNumber, exercise.id)}
@@ -453,6 +476,7 @@ export function ExerciseCard({
               {isEditing ? "✓ Concluir edição" : "Editar"}
             </button>
           )}
+          </div>
         </div>
       )}
 

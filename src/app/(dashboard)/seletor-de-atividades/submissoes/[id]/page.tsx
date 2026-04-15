@@ -18,6 +18,7 @@ function buildExportSections(lessons: Lesson[]) {
       title: ex.title,
       body: ex.text,
       ...(ex.sampleAnswer !== undefined ? { opinion: ex.sampleAnswer } : {}),
+      ...(ex.enhancedByLuri ? { enhancedByLuri: true } : {}),
       alternatives: ex.alternatives.map(({ text: body, opinion: justification, correct }) => ({
         body,
         justification,
@@ -156,6 +157,20 @@ export default function SubmissaoDetailPage({
           ...lesson,
           exercises: lesson.exercises.map((ex) =>
             ex.id === exerciseId ? { ...ex, ...changes } : ex
+          ),
+        };
+      })
+    );
+  }
+
+  function handleLuriToggle(lessonNumber: number, exerciseId: string) {
+    setEditedLessons((prev) =>
+      prev.map((lesson) => {
+        if (lesson.lessonNumber !== lessonNumber) return lesson;
+        return {
+          ...lesson,
+          exercises: lesson.exercises.map((ex) =>
+            ex.id === exerciseId ? { ...ex, enhancedByLuri: !ex.enhancedByLuri } : ex
           ),
         };
       })
@@ -425,6 +440,7 @@ export default function SubmissaoDetailPage({
                 onRemove={handleRemove}
                 onExerciseChange={handleExerciseChange}
                 onAlternativeChange={handleAlternativeChange}
+                onLuriToggle={handleLuriToggle}
                 defaultOpen
                 copyable
               />
