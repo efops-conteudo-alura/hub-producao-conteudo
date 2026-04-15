@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { HelpCircle, Download, FolderOpen, RefreshCw } from "lucide-react"
+import { HelpCircle, Download, RefreshCw } from "lucide-react"
 import {
   Dialog,
   DialogContent,
@@ -75,6 +75,14 @@ export function InstallGuideDialog() {
                 Para atualizar a extensão, basta clicar duas vezes no arquivo{" "}
                 <code className="text-foreground bg-muted px-1 rounded">atualizar.bat</code>{" "}
                 disponibilizado. Ele executará automaticamente todo o processo de atualização no seu computador.
+              </p>
+              <p className="text-muted-foreground">
+                Você pode encontrar esse arquivo dentro da pasta{" "}
+                <code className="text-foreground bg-muted px-1 rounded">alura-revisor-conteudo</code>{" "}
+                no seu computador.
+              </p>
+              <p className="text-muted-foreground">
+                Caso não encontre o arquivo, baixe a versão mais recente da extensão utilizando o botão acima.
               </p>
               <p className="text-muted-foreground">
                 Após a execução, abra{" "}
