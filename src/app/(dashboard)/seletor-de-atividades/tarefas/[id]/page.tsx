@@ -1,7 +1,8 @@
 "use client";
 
-import { Suspense, useState, useEffect, use } from "react";
+import { Suspense, useState, useEffect, useRef, use } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { Pencil, Check, X } from "lucide-react";
 import { useApp } from "@/context/AppContext";
 import { LessonAccordion } from "../../_components/LessonAccordion";
 import { StepBar } from "../../_components/StepBar";
@@ -35,10 +36,32 @@ function TarefaDetailContent({
   const [step, setStep] = useState(1);
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [editingId, setEditingId] = useState(false);
+  const [draftId, setDraftId] = useState("");
+  const idInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     document.getElementById("main-scroll")?.scrollTo({ top: 0, behavior: "instant" });
   }, [step]);
+
+  function startEditId() {
+    if (!course) return;
+    setDraftId(course.courseId);
+    setEditingId(true);
+    setTimeout(() => idInputRef.current?.select(), 0);
+  }
+
+  function confirmEditId() {
+    const trimmed = draftId.trim();
+    if (trimmed && course) {
+      setCourse({ ...course, courseId: trimmed });
+    }
+    setEditingId(false);
+  }
+
+  function cancelEditId() {
+    setEditingId(false);
+  }
 
   useEffect(() => {
     fetch(`/api/seletor/submissoes/${id}`)
@@ -210,10 +233,43 @@ function TarefaDetailContent({
             <p className="text-muted-foreground text-xs">
               Tarefa de {task.coordinator.name}
             </p>
-            <h1 className="font-heading font-bold text-primary text-lg leading-tight">
-              {task.courseId}
-              {version && <span className="ml-1.5 text-sm font-normal text-muted-foreground">· v{version}</span>}
-            </h1>
+            <div className="flex items-center gap-1.5 min-h-[28px]">
+              {editingId ? (
+                <>
+                  <input
+                    ref={idInputRef}
+                    value={draftId}
+                    onChange={(e) => setDraftId(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") confirmEditId();
+                      if (e.key === "Escape") cancelEditId();
+                    }}
+                    className="font-heading font-bold text-primary text-lg leading-tight bg-transparent border-b border-primary outline-none w-40"
+                    autoFocus
+                  />
+                  <button onClick={confirmEditId} title="Confirmar" className="text-primary hover:text-primary/70 transition-colors">
+                    <Check size={15} />
+                  </button>
+                  <button onClick={cancelEditId} title="Cancelar" className="text-muted-foreground hover:text-foreground transition-colors">
+                    <X size={15} />
+                  </button>
+                </>
+              ) : (
+                <>
+                  <h1 className="font-heading font-bold text-primary text-lg leading-tight">
+                    {course.courseId}
+                    {version && <span className="ml-1.5 text-sm font-normal text-muted-foreground">· v{version}</span>}
+                  </h1>
+                  <button
+                    onClick={startEditId}
+                    title="Editar ID do curso"
+                    className="text-muted-foreground hover:text-foreground transition-colors mt-0.5"
+                  >
+                    <Pencil size={13} />
+                  </button>
+                </>
+              )}
+            </div>
           </div>
           <button
             onClick={() => router.push("/seletor-de-atividades/tarefas")}
