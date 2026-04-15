@@ -72,13 +72,17 @@ export function InstallGuideDialog() {
                 Atualizações
               </p>
               <p className="text-muted-foreground">
-                O Chrome verifica atualizações automaticamente a cada ~5 horas e atualiza a extensão silenciosamente.{" "}
-                <strong className="text-foreground">Você não precisa fazer nada.</strong>
+                Para atualizar a extensão, basta clicar duas vezes no arquivo{" "}
+                <code className="text-foreground bg-muted px-1 rounded">atualizar.bat</code>{" "}
+                disponibilizado. Ele executará automaticamente todo o processo de atualização no seu computador.
               </p>
               <p className="text-muted-foreground">
-                Para forçar uma atualização imediata, abra{" "}
+                Após a execução, abra{" "}
                 <code className="text-foreground bg-muted px-1 rounded">chrome://extensions/</code>{" "}
-                e clique no ícone de atualizar no topo da página.
+                e clique no botão de recarregar (reload) na extensão para aplicar as mudanças.
+              </p>
+              <p className="text-muted-foreground">
+                <strong className="text-foreground">Você não precisa realizar mais nenhuma ação além disso.</strong>
               </p>
             </div>
           </div>
