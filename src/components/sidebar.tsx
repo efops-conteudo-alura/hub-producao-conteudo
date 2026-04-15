@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import Link from "next/link"
+import Image from "next/image"
 import { usePathname } from "next/navigation"
 import { signOut, useSession } from "next-auth/react"
 import { Home, BookOpen, FileCheck, LogOut, GraduationCap, BookMarked, BarChart2, ListChecks, ScanSearch, FileText } from "lucide-react"
@@ -25,11 +26,10 @@ const mainNavItems = [
   { href: "/seletor-de-atividades", label: "Seletor de Ativ.", icon: ListChecks },
   { href: "/plano-de-estudos", label: "Plano de Estudos", icon: BookMarked },
   { href: "/revisor-conteudo", label: "Revisor de Conteúdo", icon: ScanSearch },
-]
-
-const bottomNavItems = [
   { href: "/biblioteca-de-prompts", label: "Biblioteca de Prompts", icon: BookOpen },
 ]
+
+const seletorItem = { href: "/seletor-de-atividades", label: "Seletor de Ativ.", icon: ListChecks }
 
 function NavLink({ href, label, icon: Icon }: { href: string; label: string; icon: React.ElementType }) {
   const pathname = usePathname()
@@ -37,84 +37,81 @@ function NavLink({ href, label, icon: Icon }: { href: string; label: string; ico
   return (
     <Link
       href={href}
-      className={`flex flex-col items-center justify-center gap-2 w-full py-4 px-2 rounded-xl transition-colors ${
+      className={`flex items-center gap-2 w-full px-3 py-3 rounded-[8px] transition-colors ${
         isActive
           ? "bg-muted text-foreground"
-          : "text-foreground/70 hover:text-foreground hover:bg-muted/50"
+          : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
       }`}
     >
-      <Icon size={22} strokeWidth={isActive ? 2 : 1.5} />
-      <span className="text-[11px] font-semibold leading-tight text-center">
+      <Icon size={20} strokeWidth={isActive ? 2 : 1.5} className="shrink-0" />
+      <span className={`text-sm leading-tight ${isActive ? "font-semibold" : "font-normal"}`}>
         {label}
       </span>
     </Link>
   )
 }
 
-const seletorItem = { href: "/seletor-de-atividades", label: "Seletor de Ativ.", icon: ListChecks }
-
 export function Sidebar({ user }: SidebarProps) {
   const { data: session } = useSession()
   const [profileOpen, setProfileOpen] = useState(false)
 
   const isInstructor = session?.user?.role === "INSTRUCTOR"
-  const canChangePassword = true // todos os usuários agora têm senha
+  const canChangePassword = true
 
-  const visibleMainItems = isInstructor ? [seletorItem] : mainNavItems
-  const visibleBottomItems = isInstructor ? [] : bottomNavItems
-
+  const visibleItems = isInstructor ? [seletorItem] : mainNavItems
   const initials = (user.name || user.email || "U")[0]?.toUpperCase()
 
   return (
-    <aside className="flex flex-col w-[148px] shrink-0 border-r border-sidebar-border bg-sidebar h-screen sticky top-0">
-      {/* Cabeçalho */}
-      <div className="flex flex-col items-center justify-center py-5 px-3 border-b border-sidebar-border shrink-0 gap-1">
-        <span className="font-heading text-sm font-medium text-foreground/90 text-center leading-none">
-          Conteúdo
-        </span>
-        <span className="text-[10px] text-muted-foreground tracking-widest uppercase">
-          Alura
+    <aside className="flex flex-col w-[220px] shrink-0 border-r border-sidebar-border bg-sidebar h-screen sticky top-0">
+      {/* Logo */}
+      <div className="flex flex-col items-start px-5 pt-7 pb-6 shrink-0">
+        <Image
+          src="/alura-logo.svg"
+          alt="Alura"
+          width={107}
+          height={32}
+          className="[filter:brightness(0)_invert(1)] opacity-90"
+          priority
+        />
+        <span className="text-[10px] font-medium text-muted-foreground tracking-widest uppercase mt-2">
+          Produção de Conteúdo
         </span>
       </div>
 
-      {/* Navegação principal (produção) */}
-      <nav className="flex-1 flex flex-col items-center py-4 gap-2 px-2 overflow-y-auto">
-        {visibleMainItems.map((item) => (
+      {/* Navegação */}
+      <nav className="flex-1 flex flex-col px-3 gap-2 overflow-y-auto pb-4">
+        {visibleItems.map((item) => (
           <NavLink key={item.href} {...item} />
         ))}
       </nav>
 
-      {/* Navegação secundária (consulta) */}
-      {visibleBottomItems.length > 0 && (
-        <div className="shrink-0 border-t border-sidebar-border px-2 py-3 flex flex-col gap-2">
-          {visibleBottomItems.map((item) => (
-            <NavLink key={item.href} {...item} />
-          ))}
-        </div>
-      )}
-
       {/* Usuário + Logout */}
-      <div className="shrink-0 border-t border-sidebar-border px-2 py-3 flex flex-col items-center gap-1">
+      <div className="shrink-0 border-t border-sidebar-border px-3 py-3 flex flex-col gap-1">
         <button
           onClick={() => !isInstructor && setProfileOpen(true)}
-          className={`rounded-full mb-1 transition-opacity ${
-            !isInstructor ? "hover:opacity-80 cursor-pointer" : "cursor-default"
+          className={`flex items-center gap-2 w-full px-3 py-3 rounded-[8px] transition-colors ${
+            !isInstructor
+              ? "hover:bg-muted/50 cursor-pointer"
+              : "cursor-default"
           }`}
           title={!isInstructor ? "Editar perfil" : (user.name ?? "")}
         >
-          <Avatar className="h-8 w-8">
+          <Avatar className="h-5 w-5 shrink-0">
             {user.image && <AvatarImage src={user.image} alt={user.name ?? ""} />}
-            <AvatarFallback className="text-xs bg-sidebar-accent text-foreground">
+            <AvatarFallback className="text-[9px] bg-sidebar-accent text-foreground">
               {initials}
             </AvatarFallback>
           </Avatar>
+          <span className="text-sm font-normal text-muted-foreground leading-tight truncate">
+            {user.name || user.email}
+          </span>
         </button>
         <button
           onClick={() => signOut({ callbackUrl: "/login" })}
-          className="flex flex-col items-center justify-center gap-2 w-full py-4 px-2 rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted/40 transition-colors"
+          className="flex items-center gap-2 w-full px-3 py-3 rounded-[8px] text-muted-foreground hover:text-foreground hover:bg-muted/40 transition-colors"
         >
-          <LogOut size={20} strokeWidth={1.5} />
-          <span className="text-[11px] font-semibold leading-none">Sair</span>
+          <LogOut size={20} strokeWidth={1.5} className="shrink-0" />
+          <span className="text-sm font-normal leading-tight">Sair</span>
         </button>
       </div>
 
