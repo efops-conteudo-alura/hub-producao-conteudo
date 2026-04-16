@@ -73,7 +73,7 @@ export function Sidebar({ user }: SidebarProps) {
           className="[filter:brightness(0)_invert(1)] opacity-90"
           priority
         />
-        <span className="text-[10px] font-medium text-muted-foreground tracking-widest uppercase mt-2">
+        <span className="text-[11px] font-medium text-muted-foreground tracking-widest uppercase mt-2">
           Produção de Conteúdo
         </span>
       </div>
