@@ -14,7 +14,7 @@ function CoordinatorGuide() {
 
       <Step number={2} title="Selecionar o instrutor">
         <p>Escolha um instrutor já cadastrado ou informe o nome e e-mail de um novo.</p>
-        <p className="mt-1">O instrutor <strong>não precisa criar senha</strong>. Basta enviar para ele o link do Seletor — ao acessar com o e-mail cadastrado, ele já verá a tarefa atribuída.</p>
+        <p className="mt-1">Se for um novo instrutor, ele precisará <strong>definir uma senha</strong> antes do primeiro acesso. Envie manualmente a URL <span className="font-mono text-xs">hub-producao-conteudo.vercel.app/criar-senha</span> para ele.</p>
       </Step>
 
       <Step number={3} title="Aguardar a revisão">
@@ -30,8 +30,9 @@ function CoordinatorGuide() {
         <ul className="flex flex-col gap-1 list-disc pl-4">
           <li>Clique numa submissão com status <strong>revisado</strong></li>
           <li>Veja o que o instrutor selecionou — alterações aparecem em verde, texto original riscado em vermelho</li>
+          <li>Marque pelo menos 2 exercícios do curso como <strong>✦ Enhanced by Luri</strong></li>
           <li>Use <strong>Editar</strong> para ajustar um exercício, <strong>Excluir</strong> para removê-lo, ou <strong>+ Incluir na seleção</strong> para restaurar um que foi descartado</li>
-          <li>Clique em <strong>⬇ Exportar JSON</strong> para baixar o arquivo final</li>
+          <li>Clique em <strong>⬇ Exportar JSON</strong> para baixar o arquivo — ou importe diretamente no admin da Alura</li>
         </ul>
         <p className="text-muted-foreground text-xs mt-1">O arquivo exportado está no formato da plataforma Alura, pronto para importar no admin.</p>
       </Step>
@@ -44,6 +45,7 @@ function InstructorGuide() {
     <div className="flex flex-col gap-5 text-sm">
       <Step number={1} title="Ver suas tarefas">
         <p>As tarefas atribuídas a você aparecem nesta página. Clique em uma para começar.</p>
+        <p className="text-muted-foreground text-xs mt-1">Se for seu primeiro acesso, defina sua senha pelo link enviado pelo coordenador antes de entrar.</p>
       </Step>
 
       <Step number={2} title="Selecionar as atividades">

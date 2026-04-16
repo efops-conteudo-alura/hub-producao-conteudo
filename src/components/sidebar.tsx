@@ -15,6 +15,7 @@ interface SidebarProps {
     email?: string | null
     image?: string | null
   }
+  hasPassword: boolean
 }
 
 const mainNavItems = [
@@ -51,12 +52,11 @@ function NavLink({ href, label, icon: Icon }: { href: string; label: string; ico
   )
 }
 
-export function Sidebar({ user }: SidebarProps) {
+export function Sidebar({ user, hasPassword }: SidebarProps) {
   const { data: session } = useSession()
   const [profileOpen, setProfileOpen] = useState(false)
 
   const isInstructor = session?.user?.role === "INSTRUCTOR"
-  const canChangePassword = true
 
   const visibleItems = isInstructor ? [seletorItem] : mainNavItems
   const initials = (user.name || user.email || "U")[0]?.toUpperCase()
@@ -88,13 +88,9 @@ export function Sidebar({ user }: SidebarProps) {
       {/* Usuário + Logout */}
       <div className="shrink-0 border-t border-sidebar-border px-3 py-3 flex flex-col gap-1">
         <button
-          onClick={() => !isInstructor && setProfileOpen(true)}
-          className={`flex items-center gap-2 w-full px-3 py-3 rounded-[8px] transition-colors ${
-            !isInstructor
-              ? "hover:bg-muted/50 cursor-pointer"
-              : "cursor-default"
-          }`}
-          title={!isInstructor ? "Editar perfil" : (user.name ?? "")}
+          onClick={() => setProfileOpen(true)}
+          className="flex items-center gap-2 w-full px-3 py-3 rounded-[8px] transition-colors hover:bg-muted/50 cursor-pointer"
+          title="Editar perfil"
         >
           <Avatar className="h-5 w-5 shrink-0">
             {user.image && <AvatarImage src={user.image} alt={user.name ?? ""} />}
@@ -119,7 +115,7 @@ export function Sidebar({ user }: SidebarProps) {
         open={profileOpen}
         onOpenChange={setProfileOpen}
         user={user}
-        canChangePassword={canChangePassword}
+        canChangePassword={hasPassword}
       />
     </aside>
   )

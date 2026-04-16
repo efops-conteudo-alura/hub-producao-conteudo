@@ -351,7 +351,10 @@ export default function UploadPage() {
             {mode === "new" && (
               <>
                 <p className="text-muted-foreground text-xs">
-                  O instrutor será cadastrado automaticamente. No primeiro acesso, ele precisará definir uma senha pelo link recebido por e-mail.
+                  O instrutor será cadastrado automaticamente. Envie a URL abaixo para que ele defina uma senha antes de acessar:{" "}
+                  <a href="https://hub-producao-conteudo.vercel.app/criar-senha" target="_blank" rel="noopener noreferrer" className="font-mono underline underline-offset-2 hover:text-foreground transition-colors">
+                    hub-producao-conteudo.vercel.app/criar-senha
+                  </a>
                 </p>
                 <input
                   type="text"

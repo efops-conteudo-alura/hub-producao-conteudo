@@ -10,7 +10,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
   // Busca dados frescos do DB para refletir atualizações de perfil (imagem não vai pro JWT)
   const dbUser = await prisma.user.findUnique({
     where: { id: session.user.id },
-    select: { name: true, image: true },
+    select: { name: true, image: true, password: true },
   })
 
   const user = {
@@ -19,9 +19,11 @@ export default async function DashboardLayout({ children }: { children: React.Re
     image: dbUser?.image ?? null,
   }
 
+  const hasPassword = !!dbUser?.password
+
   return (
     <div className="flex h-screen overflow-hidden">
-      <Sidebar user={user} />
+      <Sidebar user={user} hasPassword={hasPassword} />
       <main id="main-scroll" className="flex-1 overflow-y-auto">
         <div className="max-w-5xl mx-auto">{children}</div>
       </main>
