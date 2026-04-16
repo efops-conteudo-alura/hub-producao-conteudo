@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useState, useEffect, use } from "react";
+import { Suspense, useState, useEffect, useRef, use } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useApp } from "@/context/AppContext";
 import { LessonAccordion } from "../../_components/LessonAccordion";
@@ -36,6 +36,7 @@ function TarefaDetailContent({
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [hasDraft, setHasDraft] = useState(false);
+  const skipNextSaveRef = useRef(false);
 
   useEffect(() => {
     document.getElementById("main-scroll")?.scrollTo({ top: 0, behavior: "instant" });
@@ -49,10 +50,16 @@ function TarefaDetailContent({
         clearAll();
         setCourse(data.originalData);
         try {
-          const saved = localStorage.getItem(`seletor-draft-${id}`);
-          if (saved) {
-            restoreSelections(JSON.parse(saved));
-            setHasDraft(true);
+          const draftKey = `seletor-draft-${id}`;
+          if (data.status !== "pending") {
+            localStorage.removeItem(draftKey);
+          } else {
+            const saved = localStorage.getItem(draftKey);
+            if (saved) {
+              skipNextSaveRef.current = true;
+              restoreSelections(JSON.parse(saved));
+              setHasDraft(true);
+            }
           }
         } catch { /* ignora erros de parse */ }
         setLoading(false);
@@ -64,6 +71,10 @@ function TarefaDetailContent({
   useEffect(() => {
     if (!task || loading) return;
     if (selectedLessons.length === 0) return;
+    if (skipNextSaveRef.current) {
+      skipNextSaveRef.current = false;
+      return;
+    }
     try {
       localStorage.setItem(`seletor-draft-${id}`, JSON.stringify(selectedLessons));
     } catch { /* ignora erros de storage */ }

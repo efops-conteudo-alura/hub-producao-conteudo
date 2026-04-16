@@ -267,7 +267,13 @@ export default function SubmissaoDetailPage({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           instructorId: submission.instructor.id,
-          originalData: { courseId: effectiveCourseId, lessons: editedLessons },
+          originalData: {
+            courseId: effectiveCourseId,
+            lessons: editedLessons.map((lesson) => ({
+              ...lesson,
+              exercises: lesson.exercises.map(({ enhancedByLuri: _luri, ...ex }) => ex),
+            })),
+          },
         }),
       });
       if (!res.ok) {
@@ -496,13 +502,18 @@ export default function SubmissaoDetailPage({
           <div className="flex gap-3 w-full justify-between items-center">
             <div>
               {(submission.status === "reviewed" || submission.status === "exported") && editedLessons.length > 0 && (
-                <button
-                  onClick={handleReopen}
-                  disabled={reopening || exporting || uploading}
-                  className="border border-border hover:border-primary/40 text-muted-foreground hover:text-foreground disabled:opacity-50 font-semibold px-5 py-3 rounded-xl transition-colors text-sm"
-                >
-                  {reopening ? "Criando..." : "↩ Reabrir para instrutor"}
-                </button>
+                <div className="relative group">
+                  <button
+                    onClick={handleReopen}
+                    disabled={reopening || exporting || uploading}
+                    className="border border-border hover:border-primary/40 text-muted-foreground hover:text-foreground disabled:opacity-50 font-semibold px-5 py-3 rounded-xl transition-colors text-sm"
+                  >
+                    {reopening ? "Criando..." : "↩ Reabrir para instrutor"}
+                  </button>
+                  <div className="absolute bottom-full left-0 mb-2 w-64 bg-popover border border-border rounded-xl px-3 py-2.5 shadow-lg text-xs text-muted-foreground leading-snug opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
+                    O instrutor receberá a versão atual (com suas edições). Para enviar o curso original, crie uma nova submissão.
+                  </div>
+                </div>
               )}
             </div>
             <div className="flex gap-3">
