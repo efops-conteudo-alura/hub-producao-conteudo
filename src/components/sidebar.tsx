@@ -23,13 +23,13 @@ const mainNavItems = [
   { href: "/pesquisa-mercado", label: "Pesquisa de Mercado", icon: BarChart2 },
   { href: "/validacao-ementa", label: "Validação de Ementa", icon: FileCheck },
   { href: "/revisao-didatica", label: "Revisão Didática", icon: GraduationCap },
-  { href: "/seletor-de-atividades", label: "Seletor de Ativ.", icon: ListChecks },
+  { href: "/seletor-de-atividades", label: "Seletor de Atividades", icon: ListChecks },
   { href: "/plano-de-estudos", label: "Plano de Estudos", icon: BookMarked },
   { href: "/revisor-conteudo", label: "Revisor de Conteúdo", icon: ScanSearch },
   { href: "/biblioteca-de-prompts", label: "Biblioteca de Prompts", icon: BookOpen },
 ]
 
-const seletorItem = { href: "/seletor-de-atividades", label: "Seletor de Ativ.", icon: ListChecks }
+const seletorItem = { href: "/seletor-de-atividades", label: "Seletor de Atividades", icon: ListChecks }
 
 function NavLink({ href, label, icon: Icon }: { href: string; label: string; icon: React.ElementType }) {
   const pathname = usePathname()
@@ -62,7 +62,7 @@ export function Sidebar({ user }: SidebarProps) {
   const initials = (user.name || user.email || "U")[0]?.toUpperCase()
 
   return (
-    <aside className="flex flex-col w-[220px] shrink-0 border-r border-sidebar-border bg-sidebar h-screen sticky top-0">
+    <aside className="flex flex-col w-[240px] shrink-0 border-r border-sidebar-border bg-sidebar h-screen sticky top-0">
       {/* Logo */}
       <div className="flex flex-col items-start px-5 pt-7 pb-6 shrink-0">
         <Image
