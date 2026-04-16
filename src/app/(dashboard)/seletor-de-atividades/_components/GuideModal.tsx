@@ -30,7 +30,7 @@ function CoordinatorGuide() {
         <ul className="flex flex-col gap-1 list-disc pl-4">
           <li>Clique numa submissão com status <strong>revisado</strong></li>
           <li>Veja o que o instrutor selecionou — alterações aparecem em verde, texto original riscado em vermelho</li>
-          <li>Marque pelo menos 2 exercícios do curso como <strong>✦ Enhanced by Luri</strong></li>
+          <li>Marque pelo menos 2 exercícios do curso como <strong style={{ color: "#5fdbfbb3" }}>✦ Enhanced by Luri</strong></li>
           <li>Use <strong>Editar</strong> para ajustar um exercício, <strong>Excluir</strong> para removê-lo, ou <strong>+ Incluir na seleção</strong> para restaurar um que foi descartado</li>
           <li>Clique em <strong>⬇ Exportar JSON</strong> para baixar o arquivo — ou importe diretamente no admin da Alura</li>
         </ul>
@@ -50,7 +50,10 @@ function InstructorGuide() {
 
       <Step number={2} title="Selecionar as atividades">
         <p>Veja todas as atividades do curso, organizadas por aula. Marque o checkbox de cada atividade que deve ser incluída na versão final.</p>
-        <p className="text-muted-foreground text-xs mt-1">Atividades de vídeo já foram removidas automaticamente.</p>
+        <ul className="mt-1.5 flex flex-col gap-1 text-muted-foreground text-xs list-disc pl-4">
+          <li>Atividades de vídeo já foram removidas automaticamente</li>
+          <li>Sua seleção é salva automaticamente — se sair e voltar, encontrará tudo como deixou</li>
+        </ul>
       </Step>
 
       <Step number={3} title="Revisar e comentar">
@@ -62,7 +65,7 @@ function InstructorGuide() {
 
       <Step number={4} title="Enviar">
         <p>Clique em <strong>Enviar seleção</strong>. O coordenador receberá sua seleção e cuidará do restante.</p>
-        <p className="text-muted-foreground text-xs mt-1">Após o envio, a seleção fica bloqueada para edição da sua parte. Se precisar de alguma alteração, entre em contato com o coordenador.</p>
+        <p className="text-muted-foreground text-xs mt-1">Após o envio, a seleção fica bloqueada. Se precisar de alguma alteração, o coordenador precisará reenviar as atividades para você.</p>
       </Step>
     </div>
   );

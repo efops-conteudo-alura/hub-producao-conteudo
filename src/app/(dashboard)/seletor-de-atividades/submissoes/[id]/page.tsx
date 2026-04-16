@@ -495,7 +495,7 @@ export default function SubmissaoDetailPage({
           )}
           <div className="flex gap-3 w-full justify-between items-center">
             <div>
-              {submission.status === "reviewed" && editedLessons.length > 0 && (
+              {(submission.status === "reviewed" || submission.status === "exported") && editedLessons.length > 0 && (
                 <button
                   onClick={handleReopen}
                   disabled={reopening || exporting || uploading}

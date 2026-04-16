@@ -440,10 +440,10 @@ export function ExerciseCard({
       )}
 
       {/* Botões de ação do coordenador */}
-      {(onEditToggle || onRemove || (onLuriToggle && (exercise.kind === "SINGLE_CHOICE" || exercise.kind === "HQ_EXPLANATION"))) && (
+      {(onEditToggle || onRemove || (onLuriToggle && (exercise.kind === "SINGLE_CHOICE" || (exercise.kind === "HQ_EXPLANATION" && exercise.dataTag === "WHAT_WE_LEARNED")))) && (
         <div className="flex justify-between items-center gap-2 pt-1">
           <div>
-            {onLuriToggle && (exercise.kind === "SINGLE_CHOICE" || exercise.kind === "HQ_EXPLANATION") && (
+            {onLuriToggle && (exercise.kind === "SINGLE_CHOICE" || (exercise.kind === "HQ_EXPLANATION" && exercise.dataTag === "WHAT_WE_LEARNED")) && (
               <label className="flex items-center gap-2 cursor-pointer text-xs text-[#5fdbfb]/70 hover:text-[#5fdbfb] transition-colors">
                 <input
                   type="checkbox"

@@ -28,13 +28,14 @@ function TarefaDetailContent({
   const router = useRouter();
   const searchParams = useSearchParams();
   const version = searchParams.get("v");
-  const { course, setCourse, selectedLessons, toggleExercise, updateComment, updateExercise, updateAlternative, clearAll } = useApp();
+  const { course, setCourse, selectedLessons, toggleExercise, updateComment, updateExercise, updateAlternative, restoreSelections, clearAll } = useApp();
 
   const [task, setTask] = useState<TaskDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [step, setStep] = useState(1);
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [hasDraft, setHasDraft] = useState(false);
 
   useEffect(() => {
     document.getElementById("main-scroll")?.scrollTo({ top: 0, behavior: "instant" });
@@ -47,11 +48,26 @@ function TarefaDetailContent({
         setTask(data);
         clearAll();
         setCourse(data.originalData);
+        try {
+          const saved = localStorage.getItem(`seletor-draft-${id}`);
+          if (saved) {
+            restoreSelections(JSON.parse(saved));
+            setHasDraft(true);
+          }
+        } catch { /* ignora erros de parse */ }
         setLoading(false);
       })
       .catch(() => setLoading(false));
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
+
+  useEffect(() => {
+    if (!task || loading) return;
+    if (selectedLessons.length === 0) return;
+    try {
+      localStorage.setItem(`seletor-draft-${id}`, JSON.stringify(selectedLessons));
+    } catch { /* ignora erros de storage */ }
+  }, [selectedLessons, id, task, loading]);
 
   const comments: Record<string, string> = {};
   selectedLessons.forEach((lesson) => {
@@ -93,6 +109,7 @@ function TarefaDetailContent({
         return;
       }
 
+      try { localStorage.removeItem(`seletor-draft-${id}`); } catch { /* ignora */ }
       setStep(4);
     } catch {
       setError("Erro de conexão. Verifique sua internet e tente novamente.");
@@ -231,6 +248,22 @@ function TarefaDetailContent({
       {step === 1 && (
         <>
           <main className="flex flex-col gap-4 px-6 py-6 max-w-3xl mx-auto w-full flex-1">
+            {hasDraft && (
+              <div className="bg-primary/5 border border-primary/20 rounded-xl px-4 py-3 flex items-center justify-between gap-3">
+                <p className="text-sm text-foreground/70">Suas seleções anteriores foram restauradas.</p>
+                <button
+                  onClick={() => {
+                    clearAll();
+                    setCourse(task!.originalData);
+                    localStorage.removeItem(`seletor-draft-${id}`);
+                    setHasDraft(false);
+                  }}
+                  className="text-xs text-muted-foreground hover:text-foreground underline underline-offset-2 shrink-0 transition-colors"
+                >
+                  Começar do zero
+                </button>
+              </div>
+            )}
             <p className="text-muted-foreground text-sm">
               Selecione ao menos uma atividade por aula.{" "}
               <span className="text-muted-foreground/70">Você poderá editá-las no próximo passo.</span>
@@ -315,6 +348,9 @@ function TarefaDetailContent({
             </p>
             <p className="text-muted-foreground text-sm">
               Enviando para <span className="text-foreground">{task.coordinator.name}</span>
+            </p>
+            <p className="text-xs text-muted-foreground/70 bg-muted/50 rounded-xl px-4 py-3 mt-2 max-w-sm">
+              Após o envio, você não poderá editar suas seleções. Se precisar de alguma alteração, o coordenador precisará reenviar as atividades para você.
             </p>
           </div>
 

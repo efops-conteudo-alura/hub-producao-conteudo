@@ -19,6 +19,7 @@ type AppState = {
   updateComment: (lessonNumber: number, exerciseId: string, comment: string) => void;
   updateExercise: (lessonNumber: number, exerciseId: string, changes: Partial<Exercise>) => void;
   updateAlternative: (lessonNumber: number, exerciseId: string, altIndex: number, changes: Partial<Alternative>) => void;
+  restoreSelections: (lessons: Lesson[]) => void;
   clearAll: () => void;
 };
 
@@ -132,6 +133,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
     []
   );
 
+  const restoreSelections = useCallback((lessons: Lesson[]) => {
+    setSelectedLessons(lessons);
+  }, []);
+
   const clearAll = useCallback(() => {
     setCourse(null);
     setSelectedLessons([]);
@@ -150,6 +155,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         updateComment,
         updateExercise,
         updateAlternative,
+        restoreSelections,
         clearAll,
       }}
     >
