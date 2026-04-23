@@ -3,13 +3,27 @@ import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/db"
 import { encrypt, decrypt } from "@/lib/crypto"
 
-const SERVICES = ["github", "video_uploader", "claude_api_key"] as const
+const SERVICES = [
+  "github",
+  "video_uploader",
+  "claude_api_key",
+  "s3_access_key",
+  "s3_secret_key",
+  "s3_region",
+  "s3_bucket",
+  "s3_cdn_base_url",
+] as const
 type Service = (typeof SERVICES)[number]
 
 const SERVICE_KEY: Record<Service, string> = {
   github: "revisor_github_token",
   video_uploader: "revisor_video_uploader_token",
   claude_api_key: "revisor_claude_api_key",
+  s3_access_key: "revisor_s3_access_key",
+  s3_secret_key: "revisor_s3_secret_key",
+  s3_region: "revisor_s3_region",
+  s3_bucket: "revisor_s3_bucket",
+  s3_cdn_base_url: "revisor_s3_cdn_base_url",
 }
 
 export async function GET() {

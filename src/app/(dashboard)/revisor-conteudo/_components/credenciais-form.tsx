@@ -10,6 +10,11 @@ const SERVICES = [
   { id: "github", label: "GitHub Token", placeholder: "ghp_..." },
   { id: "video_uploader", label: "Video Uploader Token", placeholder: "token..." },
   { id: "claude_api_key", label: "Claude API Key", placeholder: "sk-ant-..." },
+  { id: "s3_access_key", label: "S3 Access Key ID", placeholder: "AKIA..." },
+  { id: "s3_secret_key", label: "S3 Secret Access Key", placeholder: "wJalr..." },
+  { id: "s3_region", label: "S3 Region", placeholder: "us-east-1" },
+  { id: "s3_bucket", label: "S3 Bucket Name", placeholder: "gnarus-assets" },
+  { id: "s3_cdn_base_url", label: "S3 CDN Base URL", placeholder: "https://cdn3.gnarususercontent.com.br" },
 ] as const
 
 type ServiceId = (typeof SERVICES)[number]["id"]
