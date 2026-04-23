@@ -74,7 +74,8 @@ export async function POST(request: NextRequest) {
   })
 
   const presignedUrl = await getSignedUrl(client, command, { expiresIn: 3600 })
-  const cdnUrl = `${cdnBaseUrl.replace(/^http:\/\//, "https://").replace(/\/$/, "")}/${objectKey}`
+  const encodedKey = objectKey.split("/").map(encodeURIComponent).join("/")
+  const cdnUrl = `${cdnBaseUrl.replace(/^http:\/\//, "https://").replace(/\/$/, "")}/${encodedKey}`
 
   return NextResponse.json({ presignedUrl, cdnUrl })
 }
