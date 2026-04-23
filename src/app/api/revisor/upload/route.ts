@@ -51,7 +51,7 @@ export async function POST(request: NextRequest) {
 
   const client = new S3Client({
     region,
-    endpoint: `https://${endpoint}`,
+    endpoint: `https://${endpoint.replace(/^https?:\/\//, "")}`,
     credentials: { accessKeyId, secretAccessKey },
     forcePathStyle: true,
   })
