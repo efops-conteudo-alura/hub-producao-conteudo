@@ -14,6 +14,7 @@ export async function POST(request: NextRequest) {
   const file = formData.get("file") as File | null
   const courseFolder = (formData.get("courseFolder") as string | null)?.trim()
   const subFolder = (formData.get("subFolder") as string | null)?.trim() || ""
+  const relativePath = (formData.get("relativePath") as string | null)?.trim()
 
   if (!file || !courseFolder) {
     return NextResponse.json({ error: "Arquivo e pasta do curso são obrigatórios." }, { status: 400 })
@@ -46,7 +47,9 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Credenciais S3 não configuradas." }, { status: 503 })
   }
 
-  const objectKey = `material-alura/${courseFolder}/${subFolder ? subFolder + "/" : ""}${file.name}`
+  const objectKey = relativePath
+    ? `material-alura/${courseFolder}/${relativePath}`
+    : `material-alura/${courseFolder}/${subFolder ? subFolder + "/" : ""}${file.name}`
   const fileBuffer = Buffer.from(await file.arrayBuffer())
 
   const client = new S3Client({
@@ -67,7 +70,7 @@ export async function POST(request: NextRequest) {
       })
     )
 
-    const cdnUrl = `${cdnBaseUrl.replace(/\/$/, "")}/${objectKey}`
+    const cdnUrl = `${cdnBaseUrl.replace(/^http:\/\//, "https://").replace(/\/$/, "")}/${objectKey}`
     return NextResponse.json({ ok: true, cdnUrl })
   } catch (e: unknown) {
     const message = e instanceof Error ? e.message : String(e)
