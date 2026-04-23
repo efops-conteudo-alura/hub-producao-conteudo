@@ -46,7 +46,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Credenciais S3 não configuradas." }, { status: 503 })
   }
 
-  const objectKey = `${courseFolder}/${subFolder ? subFolder + "/" : ""}${file.name}`
+  const objectKey = `material-alura/${courseFolder}/${subFolder ? subFolder + "/" : ""}${file.name}`
   const fileBuffer = Buffer.from(await file.arrayBuffer())
 
   const client = new S3Client({
