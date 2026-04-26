@@ -1,7 +1,7 @@
 # Handoff — Hub de Produção de Conteúdo
 
 > Documento de transição de projeto. Última atualização: abril de 2025.
-> Responsável de saída: _[seu nome aqui]_
+> Responsável de saída: Vasco
 > Responsável de entrada: Rafael
 
 ---
@@ -23,15 +23,11 @@ O projeto faz parte de um **ecossistema de dois apps** que compartilham o mesmo 
 
 | Recurso | Onde |
 |---|---|
-| Este repositório | _[link do repo]_ |
-| Repositório hub-efops | _[link do repo]_ |
-| Repositório extensão Chrome | _[link do repo]_ |
-| Banco de dados (Neon) | _[link do dashboard Neon]_ |
-| Deploy (Vercel) | _[link do projeto Vercel]_ |
-| URL de produção | _[url]_ |
-| URL de staging/preview | _[url]_ |
-
-> Preencha os campos em branco acima antes de passar o documento ao Rafael.
+| Este repositório | [_[link do repo]_](https://github.com/efops-conteudo-alura/hub-producao-conteudo) |
+| Repositório hub-efops | [_[link do repo]_](https://github.com/efops-conteudo-alura/hub-efops) |
+| Repositório extensão Chrome | [_[link do repo]_](https://github.com/efops-conteudo-alura/alura-revisor-conteudo) |
+| Banco de dados (Neon) | [_[link do dashboard Neon]_](https://console.neon.tech/app/projects/delicate-hall-09687820) |
+| Deploy (Vercel) | [_[link do projeto Vercel]_](https://vercel.com/aluras-projects-3644c498/hub-producao-conteudo) |
 
 ### Variáveis de ambiente
 
@@ -97,7 +93,7 @@ As variáveis de produção estão configuradas no Vercel. Para desenvolvimento 
 
 ## Decisões que precisam ser tomadas
 
-Estas são decisões em aberto que o Rafael precisará tomar (ou alinhar com produto) antes de qualquer implementação nova:
+Estas são decisões em aberto que o Rafael precisará tomar (ou alinhar com Vasco) antes de qualquer implementação nova:
 
 | Decisão | Contexto |
 |---|---|
@@ -121,9 +117,9 @@ Estas são decisões em aberto que o Rafael precisará tomar (ou alinhar com pro
 
 | Quem | Papel | Quando acionar |
 |---|---|---|
-| _[nome]_ | Responsável pelo hub-efops | Qualquer dúvida sobre schema, usuários, migrations ou AppRoles |
-| _[nome]_ | Produto / coordenação | Definição de escopo dos módulos novos |
-| _[nome]_ | Extensão Chrome | Dúvidas sobre `alura-revisor-conteudo` |
+| Vasco | Responsável pelo hub-efops | Qualquer dúvida sobre schema, usuários, migrations ou AppRoles |
+| Vasco e Rafael | Produto / coordenação | Definição de escopo dos módulos novos |
+| Rafael | Extensão Chrome | Dúvidas sobre `alura-revisor-conteudo` |
 
 ---
 
