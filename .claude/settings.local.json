@@ -16,7 +16,19 @@
       "Bash(git remote:*)",
       "mcp__vercel__list_projects",
       "mcp__vercel__get_deployment",
-      "mcp__vercel__list_teams"
+      "mcp__vercel__list_teams",
+      "mcp__figma__get_design_context",
+      "Bash(curl -s -o alura-logo-part1.png \"https://www.figma.com/api/mcp/asset/eb501d71-a5cc-40d0-b1dc-11c20399681f\")",
+      "Bash(file alura-logo-part1.png)",
+      "Bash(python -c ' *)",
+      "Bash(curl -s \"https://www.figma.com/api/mcp/asset/eb501d71-a5cc-40d0-b1dc-11c20399681f\")",
+      "Bash(curl -s \"https://www.figma.com/api/mcp/asset/037c82e3-89fd-45d9-b0d4-86fbb9c04201\")",
+      "Bash(curl -s \"https://www.figma.com/api/mcp/asset/e13b1b15-5dc0-41da-9c1d-b1fcbb4c2318\")",
+      "Bash(curl -s \"https://www.figma.com/api/mcp/asset/d80649a5-ccbe-41b2-b661-b534ea77d90e\")",
+      "Bash(curl -s \"https://www.figma.com/api/mcp/asset/4cb0c446-e694-45f2-92c4-8670475c3188\")",
+      "mcp__vercel__list_deployments",
+      "Bash(awk '{print $NF}')",
+      "Bash(grep \"\\\\.tsx$\")"
     ]
   }
 }
