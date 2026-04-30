@@ -18,7 +18,7 @@ export async function GET() {
       ? { instructorId: userId }
       : role === "ADMIN"
       ? {}
-      : { coordinatorId: userId };
+      : { OR: [{ coordinatorId: userId }, { sharedCoordinators: { some: { coordinatorId: userId } } }] };
 
   let submissions;
   try {

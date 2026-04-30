@@ -17,6 +17,10 @@ export async function GET(
       include: {
         instructor: { select: { id: true, name: true, email: true } },
         coordinator: { select: { id: true, name: true, email: true } },
+        sharedCoordinators: {
+          include: { coordinator: { select: { id: true, name: true, email: true } } },
+          orderBy: { addedAt: "asc" },
+        },
       },
     });
   } catch (e) {
@@ -29,14 +33,24 @@ export async function GET(
   const userId = session.user.id;
   const role = session.user.role;
 
+  const isShared = submission.sharedCoordinators.some((sc) => sc.coordinatorId === userId);
+
   const canView =
     role === "ADMIN" ||
     submission.instructorId === userId ||
-    submission.coordinatorId === userId;
+    submission.coordinatorId === userId ||
+    isShared;
 
   if (!canView) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
-  return NextResponse.json(submission);
+  return NextResponse.json({
+    ...submission,
+    sharedCoordinators: submission.sharedCoordinators.map((sc) => ({
+      coordinatorId: sc.coordinatorId,
+      coordinator: sc.coordinator,
+      addedAt: sc.addedAt,
+    })),
+  });
 }
 
 export async function PATCH(
@@ -49,7 +63,12 @@ export async function PATCH(
   const { id } = await params;
   let submission;
   try {
-    submission = await prisma.submission.findUnique({ where: { id } });
+    submission = await prisma.submission.findUnique({
+      where: { id },
+      include: {
+        sharedCoordinators: { select: { coordinatorId: true } },
+      },
+    });
   } catch (e) {
     console.error("[PATCH /api/seletor/submissoes/[id]] Erro ao buscar submissão:", e);
     return NextResponse.json({ error: "Erro ao acessar o banco de dados." }, { status: 500 });
@@ -59,8 +78,10 @@ export async function PATCH(
   const userId = session.user.id;
   const role = session.user.role;
 
+  const isSharedCoordinator = submission.sharedCoordinators.some((sc) => sc.coordinatorId === userId);
+
   const isCoordinator =
-    (role === "COORDINATOR" && submission.coordinatorId === userId) ||
+    (role === "COORDINATOR" && (submission.coordinatorId === userId || isSharedCoordinator)) ||
     role === "ADMIN";
   const isAssignedInstructor =
     role === "INSTRUCTOR" && submission.instructorId === userId;

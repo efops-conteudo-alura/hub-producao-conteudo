@@ -2,10 +2,17 @@
 
 import { useState, useEffect, useRef, use } from "react";
 import { useRouter } from "next/navigation";
-import { Pencil, Check, X } from "lucide-react";
+import { useSession } from "next-auth/react";
+import { Pencil, Check, X, UserPlus, Trash2 } from "lucide-react";
 import { LessonAccordion } from "../../_components/LessonAccordion";
 import { exportSelectedCourse } from "@/lib/export";
 import type { Alternative, Course, Exercise, Lesson } from "@/types/course";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 function buildExportSections(lessons: Lesson[]) {
   return lessons.map((lesson) => ({
@@ -28,14 +35,29 @@ function buildExportSections(lessons: Lesson[]) {
   }));
 }
 
+interface SharedCoordinator {
+  coordinatorId: string;
+  coordinator: { id: string; name: string; email: string };
+  addedAt: string;
+}
+
 interface SubmissionDetail {
   id: string;
   courseId: string;
   status: string;
+  coordinatorId: string;
   instructor: { id: string; name: string; email: string };
+  coordinator: { id: string; name: string; email: string };
+  sharedCoordinators: SharedCoordinator[];
   originalData: Course;
   submittedData: { courseId?: string; lessons?: Lesson[] };
   createdAt: string;
+}
+
+interface Coordinator {
+  id: string;
+  name: string;
+  email: string;
 }
 
 export default function SubmissaoDetailPage({
@@ -45,6 +67,7 @@ export default function SubmissaoDetailPage({
 }) {
   const { id } = use(params);
   const router = useRouter();
+  const { data: session } = useSession();
 
   const [submission, setSubmission] = useState<SubmissionDetail | null>(null);
   const [loading, setLoading] = useState(true);
@@ -60,6 +83,15 @@ export default function SubmissaoDetailPage({
   const [draftCourseId, setDraftCourseId] = useState("");
   const [overrideCourseId, setOverrideCourseId] = useState<string | null>(null);
   const courseIdInputRef = useRef<HTMLInputElement>(null);
+
+  // Compartilhamento
+  const [showShareDialog, setShowShareDialog] = useState(false);
+  const [allCoordinators, setAllCoordinators] = useState<Coordinator[]>([]);
+  const [loadingCoordinators, setLoadingCoordinators] = useState(false);
+  const [selectedCoordinatorId, setSelectedCoordinatorId] = useState("");
+  const [addingCoordinator, setAddingCoordinator] = useState(false);
+  const [removingCoordinatorId, setRemovingCoordinatorId] = useState<string | null>(null);
+  const [shareError, setShareError] = useState<string | null>(null);
 
   useEffect(() => {
     fetch(`/api/seletor/submissoes/${id}`)
@@ -80,12 +112,10 @@ export default function SubmissaoDetailPage({
       .catch(() => setLoading(false));
   }, [id]);
 
-  // Anuncia a página para a extensão ao montar
   useEffect(() => {
     window.postMessage({ type: "HUB_PAGE_READY", pageType: "seletor-atividades", courseId: id }, "*");
   }, []);  // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Ouve o resultado do upload feito pela extensão
   useEffect(() => {
     function onMessage(e: MessageEvent) {
       if (e.source !== window) return;
@@ -109,6 +139,90 @@ export default function SubmissaoDetailPage({
     window.addEventListener("message", onMessage);
     return () => window.removeEventListener("message", onMessage);
   }, []);
+
+  async function openShareDialog() {
+    setShareError(null);
+    setSelectedCoordinatorId("");
+    setShowShareDialog(true);
+    setLoadingCoordinators(true);
+    try {
+      const res = await fetch("/api/seletor/coordenadores");
+      const data: Coordinator[] = await res.json();
+      setAllCoordinators(data);
+    } catch {
+      setShareError("Erro ao carregar coordenadores.");
+    } finally {
+      setLoadingCoordinators(false);
+    }
+  }
+
+  async function handleAddCoordinator() {
+    if (!selectedCoordinatorId || !submission) return;
+    setAddingCoordinator(true);
+    setShareError(null);
+    try {
+      const res = await fetch(`/api/seletor/submissoes/${id}/coordenadores`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ coordinatorId: selectedCoordinatorId }),
+      });
+      if (!res.ok) {
+        const json = await res.json().catch(() => ({}));
+        setShareError(json.error ?? "Erro ao adicionar coordenador.");
+        return;
+      }
+      const added = allCoordinators.find((c) => c.id === selectedCoordinatorId);
+      if (added) {
+        setSubmission((prev) =>
+          prev
+            ? {
+                ...prev,
+                sharedCoordinators: [
+                  ...prev.sharedCoordinators,
+                  { coordinatorId: added.id, coordinator: added, addedAt: new Date().toISOString() },
+                ],
+              }
+            : prev
+        );
+      }
+      setSelectedCoordinatorId("");
+    } catch {
+      setShareError("Erro de conexão.");
+    } finally {
+      setAddingCoordinator(false);
+    }
+  }
+
+  async function handleRemoveCoordinator(coordinatorId: string) {
+    setRemovingCoordinatorId(coordinatorId);
+    setShareError(null);
+    try {
+      const res = await fetch(`/api/seletor/submissoes/${id}/coordenadores`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ coordinatorId }),
+      });
+      if (!res.ok) {
+        const json = await res.json().catch(() => ({}));
+        setShareError(json.error ?? "Erro ao remover coordenador.");
+        return;
+      }
+      setSubmission((prev) =>
+        prev
+          ? {
+              ...prev,
+              sharedCoordinators: prev.sharedCoordinators.filter(
+                (sc) => sc.coordinatorId !== coordinatorId
+              ),
+            }
+          : prev
+      );
+    } catch {
+      setShareError("Erro de conexão.");
+    } finally {
+      setRemovingCoordinatorId(null);
+    }
+  }
 
   function handleEditToggle(exerciseId: string) {
     setEditingExerciseId((prev) => (prev === exerciseId ? null : exerciseId));
@@ -331,6 +445,22 @@ export default function SubmissaoDetailPage({
     );
   }
 
+  const currentUserId = session?.user?.id;
+  const currentUserRole = session?.user?.role;
+  const isOriginalCoordinator =
+    currentUserRole === "ADMIN" || submission.coordinatorId === currentUserId;
+  const isSharedCoordinator = submission.sharedCoordinators.some(
+    (sc) => sc.coordinatorId === currentUserId
+  );
+  const canShare = isOriginalCoordinator;
+  const canSeeShareButton = isOriginalCoordinator || isSharedCoordinator;
+
+  const alreadySharedIds = new Set([
+    submission.coordinatorId,
+    ...submission.sharedCoordinators.map((sc) => sc.coordinatorId),
+  ]);
+  const availableToAdd = allCoordinators.filter((c) => !alreadySharedIds.has(c.id));
+
   const originalLessonsByNumber: Record<number, Lesson> = {};
   submission.originalData.lessons.forEach((lesson) => {
     originalLessonsByNumber[lesson.lessonNumber] = lesson;
@@ -398,12 +528,28 @@ export default function SubmissaoDetailPage({
             <span className="text-xs text-red-600 dark:text-red-400">aguardando revisão do instrutor</span>
           )}
         </div>
-        <button
-          onClick={() => router.push("/seletor-de-atividades/submissoes")}
-          className="text-muted-foreground hover:text-foreground text-sm transition-colors"
-        >
-          ← Voltar
-        </button>
+        <div className="flex items-center gap-3">
+          {canSeeShareButton && (
+            <button
+              onClick={openShareDialog}
+              title="Compartilhar com outro coordenador"
+              className="flex items-center gap-1.5 text-muted-foreground hover:text-foreground text-sm transition-colors"
+            >
+              <UserPlus size={16} />
+              {submission.sharedCoordinators.length > 0 && (
+                <span className="text-xs bg-primary/10 text-primary rounded-full px-1.5 py-0.5 font-medium">
+                  {submission.sharedCoordinators.length}
+                </span>
+              )}
+            </button>
+          )}
+          <button
+            onClick={() => router.push("/seletor-de-atividades/submissoes")}
+            className="text-muted-foreground hover:text-foreground text-sm transition-colors"
+          >
+            ← Voltar
+          </button>
+        </div>
       </header>
 
       <main className="flex flex-col gap-6 px-6 py-6 max-w-3xl mx-auto w-full flex-1">
@@ -535,6 +681,116 @@ export default function SubmissaoDetailPage({
           </div>
         </div>
       </footer>
+
+      {/* Dialog de compartilhamento */}
+      <Dialog open={showShareDialog} onOpenChange={setShowShareDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Compartilhar submissão</DialogTitle>
+          </DialogHeader>
+
+          <div className="flex flex-col gap-4 pt-1">
+            {/* Coordenador original */}
+            <div>
+              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">
+                Coordenador responsável
+              </p>
+              <div className="flex items-center justify-between px-3 py-2.5 rounded-lg bg-muted/40">
+                <div>
+                  <p className="text-sm font-medium">{submission.coordinator.name}</p>
+                  <p className="text-xs text-muted-foreground">{submission.coordinator.email}</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Coordenadores compartilhados */}
+            <div>
+              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">
+                Também têm acesso
+              </p>
+              {submission.sharedCoordinators.length === 0 ? (
+                <p className="text-sm text-muted-foreground px-3 py-2">Nenhum coordenador adicionado ainda.</p>
+              ) : (
+                <div className="flex flex-col gap-1.5">
+                  {submission.sharedCoordinators.map((sc) => {
+                    const canRemove =
+                      isOriginalCoordinator || sc.coordinatorId === currentUserId;
+                    return (
+                      <div
+                        key={sc.coordinatorId}
+                        className="flex items-center justify-between px-3 py-2.5 rounded-lg bg-muted/40"
+                      >
+                        <div>
+                          <p className="text-sm font-medium">{sc.coordinator.name}</p>
+                          <p className="text-xs text-muted-foreground">{sc.coordinator.email}</p>
+                        </div>
+                        {canRemove && (
+                          <button
+                            onClick={() => handleRemoveCoordinator(sc.coordinatorId)}
+                            disabled={removingCoordinatorId === sc.coordinatorId}
+                            title="Remover"
+                            className="text-muted-foreground hover:text-destructive disabled:opacity-40 transition-colors ml-2"
+                          >
+                            {removingCoordinatorId === sc.coordinatorId ? (
+                              <span className="text-xs">...</span>
+                            ) : (
+                              <Trash2 size={15} />
+                            )}
+                          </button>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+            {/* Adicionar coordenador — só para o original ou admin */}
+            {canShare && (
+              <div>
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">
+                  Adicionar coordenador
+                </p>
+                {loadingCoordinators ? (
+                  <p className="text-sm text-muted-foreground px-3 py-2">Carregando...</p>
+                ) : availableToAdd.length === 0 ? (
+                  <p className="text-sm text-muted-foreground px-3 py-2">
+                    Todos os coordenadores já têm acesso.
+                  </p>
+                ) : (
+                  <div className="flex gap-2">
+                    <select
+                      value={selectedCoordinatorId}
+                      onChange={(e) => setSelectedCoordinatorId(e.target.value)}
+                      className="flex-1 bg-background border border-border rounded-lg px-3 py-2 text-sm outline-none focus:border-primary transition-colors"
+                    >
+                      <option value="">Selecionar coordenador...</option>
+                      {availableToAdd.map((c) => (
+                        <option key={c.id} value={c.id}>
+                          {c.name}
+                        </option>
+                      ))}
+                    </select>
+                    <button
+                      onClick={handleAddCoordinator}
+                      disabled={!selectedCoordinatorId || addingCoordinator}
+                      className="bg-primary hover:bg-primary/80 disabled:opacity-50 text-primary-foreground font-semibold px-4 py-2 rounded-lg text-sm transition-colors"
+                    >
+                      {addingCoordinator ? "..." : "Adicionar"}
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {shareError && (
+              <p className="text-destructive text-sm bg-destructive/10 px-3 py-2 rounded-lg">
+                {shareError}
+              </p>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
