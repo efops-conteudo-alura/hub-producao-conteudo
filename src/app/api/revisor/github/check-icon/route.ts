@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
-import { prisma } from "@/lib/db"
-import { decrypt } from "@/lib/crypto"
 
 export async function POST(request: NextRequest) {
   const session = await auth()
@@ -12,11 +10,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "courseSlug é obrigatório." }, { status: 400 })
   }
 
-  const entry = await prisma.systemConfig
-    .findUnique({ where: { key: "revisor_github_token" }, select: { value: true } })
-    .catch(() => null)
-
-  const pat = entry ? decrypt(entry.value) : ""
+  const pat = process.env.GITHUB_TOKEN ?? ""
   if (!pat) {
     return NextResponse.json({ error: "GitHub token não configurado." }, { status: 503 })
   }

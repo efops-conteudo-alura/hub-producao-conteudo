@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
-import { prisma } from "@/lib/db"
-import { decrypt } from "@/lib/crypto"
 
 export async function POST(request: NextRequest) {
   const session = await auth()
@@ -12,11 +10,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "courseSlugList e svgBase64 são obrigatórios." }, { status: 400 })
   }
 
-  const entry = await prisma.systemConfig
-    .findUnique({ where: { key: "revisor_github_token" }, select: { value: true } })
-    .catch(() => null)
-
-  const pat = entry ? decrypt(entry.value) : ""
+  const pat = process.env.GITHUB_TOKEN ?? ""
   if (!pat) {
     return NextResponse.json({ error: "GitHub token não configurado." }, { status: 503 })
   }
@@ -32,7 +26,6 @@ export async function POST(request: NextRequest) {
     "Content-Type": "application/json",
   }
 
-  // Get current branch SHA
   const refResp = await fetch(`https://api.github.com/repos/${repo}/git/refs/heads/${branch}`, { headers })
   if (!refResp.ok) {
     return NextResponse.json({ ok: false, error: `GitHub ref HTTP ${refResp.status}` }, { status: 502 })
@@ -40,12 +33,10 @@ export async function POST(request: NextRequest) {
   const refData = await refResp.json()
   const latestCommitSha: string = refData.object.sha
 
-  // Get commit's tree SHA
   const commitResp = await fetch(`https://api.github.com/repos/${repo}/git/commits/${latestCommitSha}`, { headers })
   const commitData = await commitResp.json()
   const baseTreeSha: string = commitData.tree.sha
 
-  // Create blob
   const blobResp = await fetch(`https://api.github.com/repos/${repo}/git/blobs`, {
     method: "POST",
     headers,
@@ -54,7 +45,6 @@ export async function POST(request: NextRequest) {
   const blobData = await blobResp.json()
   const blobSha: string = blobData.sha
 
-  // Create tree with all files
   const treeEntries = (courseSlugList as string[]).map((slug) => ({
     path: `${basePath}/${slug}.svg`,
     mode: "100644",
@@ -69,7 +59,6 @@ export async function POST(request: NextRequest) {
   })
   const newTreeData = await newTreeResp.json()
 
-  // Create commit
   const slugsSummary =
     (courseSlugList as string[]).slice(0, 3).join(", ") +
     (courseSlugList.length > 3 ? "…" : "")
@@ -84,7 +73,6 @@ export async function POST(request: NextRequest) {
   })
   const newCommitData = await newCommitResp.json()
 
-  // Update branch reference
   const updateRefResp = await fetch(
     `https://api.github.com/repos/${repo}/git/refs/heads/${branch}`,
     {

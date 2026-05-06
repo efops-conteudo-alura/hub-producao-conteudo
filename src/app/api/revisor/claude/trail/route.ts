@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
-import { prisma } from "@/lib/db"
-import { decrypt } from "@/lib/crypto"
 
 export const maxDuration = 60
 
@@ -14,11 +12,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "systemPrompt e userMessage são obrigatórios." }, { status: 400 })
   }
 
-  const entry = await prisma.systemConfig
-    .findUnique({ where: { key: "revisor_claude_api_key" }, select: { value: true } })
-    .catch(() => null)
-
-  const apiKey = entry ? decrypt(entry.value) : ""
+  const apiKey = process.env.ANTHROPIC_API_KEY ?? ""
   if (!apiKey) {
     return NextResponse.json({ error: "Claude API Key não configurada." }, { status: 503 })
   }
