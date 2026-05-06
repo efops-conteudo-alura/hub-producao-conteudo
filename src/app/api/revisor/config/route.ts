@@ -4,10 +4,7 @@ import { prisma } from "@/lib/db"
 import { encrypt, decrypt } from "@/lib/crypto"
 
 const SERVICES = [
-  "github",
   "video_uploader",
-  "claude_api_key",
-  "claude_api_key_trails",
   "s3_access_key",
   "s3_secret_key",
   "s3_endpoint",
@@ -18,10 +15,7 @@ const SERVICES = [
 type Service = (typeof SERVICES)[number]
 
 const SERVICE_KEY: Record<Service, string> = {
-  github: "revisor_github_token",
   video_uploader: "revisor_video_uploader_token",
-  claude_api_key: "revisor_claude_api_key",
-  claude_api_key_trails: "revisor_claude_api_key_trails",
   s3_access_key: "revisor_s3_access_key",
   s3_secret_key: "revisor_s3_secret_key",
   s3_endpoint: "revisor_s3_endpoint",

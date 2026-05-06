@@ -7,10 +7,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 
 const SERVICES = [
-  { id: "github", label: "GitHub Token", placeholder: "ghp_..." },
   { id: "video_uploader", label: "Video Uploader Token", placeholder: "token..." },
-  { id: "claude_api_key", label: "Claude API Key — Renomear sessão", placeholder: "sk-ant-..." },
-  { id: "claude_api_key_trails", label: "Claude API Key — Revisão de trilhas", placeholder: "sk-ant-..." },
   { id: "s3_access_key", label: "S3 Access Key ID", placeholder: "e74..." },
   { id: "s3_secret_key", label: "S3 Secret Access Key", placeholder: "..." },
   { id: "s3_endpoint", label: "S3 Endpoint Hostname", placeholder: "49xxx.r2.cloudflarestorage.com" },
